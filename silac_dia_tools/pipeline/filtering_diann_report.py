@@ -4,33 +4,17 @@ Created on Mon Sep 18 11:43:50 2023
 
 @author: rkerrid
 
-Step 1: Module for filtering report.tsv output (DIA-NN version?)
-
-To do
-
--refactor
+Step 1: Module for filtering report.tsv output (DIA-NN version 1.8.1)
 
 """
 import pandas as pd
 import os
 import json
 import operator
-import sys
-sys.path.append('D:/Projects phd/General scripts for proteomics/SILAC DIA tools/')
 from utils import filtering_report
 
-
-#create preprocessing directory for new files 
-def create_preprocessing_directory(path):
-    # Combine the paths
-    new_folder_path = os.path.join(path, 'preprocessing')
-    
-    # Create the new folder
-    if not os.path.exists(new_folder_path):
-        os.makedirs(new_folder_path)
-        print(f"Folder preprocessing created successfully at {new_folder_path}")
-    else:
-        print(f"Folder preprocessing already exists at {new_folder_path}")
+# Defining the relative path to configs directory 
+CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'configs')
 
 def import_and_filter(path, update=False):
     # Define chunk size (number of rows to load at a time)
@@ -39,20 +23,21 @@ def import_and_filter(path, update=False):
     contams = []
     filtered_set = []
     
-    # Load json params
-    project_path = 'D:/Projects phd/General scripts for proteomics/SILAC DIA tools/'
-    json_path = os.path.join(project_path, 'configs', 'filtering_parameters.json')
+    # Load filtering parameters from JSON
+    print('Loading filtering parameters')
+    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
     with open(json_path, 'r') as f:
         params = json.load(f)
         
     # Iterate through the file in chunks and apply preprocessing functions
+    print('Beggining filtering')
     count = 1
     with open(f"{path}report.tsv", 'r', encoding='utf-8') as file:
         for chunk in pd.read_table(file,sep="\t", chunksize=chunk_size):
             # Apply filtering to each chunk
             chunk, contam = remove_contaminants(chunk)
             chunk, filtered_out = apply_filters(chunk, params)
-            # chunk = drop_cols(chunk) 
+            chunk = drop_cols(chunk) 
             # Append chunks from respective filtering steps
             filtered_set.append(filtered_out)
             contams.append(contam)
@@ -66,17 +51,32 @@ def import_and_filter(path, update=False):
     filtered_set = pd.concat(filtered_set, ignore_index=True)
     contams = pd.concat(contams, ignore_index=True)
     df = pd.concat(chunks, ignore_index=True)
+    
     # Pass filtering information to reports
+    print('Generating filtering report')
     filtering_report.filtering_qc(df, contams, filtered_set, path, params)
     create_preprocessing_directory(path)
-    print('saving filtered')
-    df.to_csv(path+'preprocessing/report_filtered.tsv',sep='\t')
-    print('Done!')
+    print('Saving filtered_report.tsv')
+    df.to_csv(f'{path}preprocessing/report_filtered.tsv',sep='\t')
+    print('Filtering complete')
     return df, contams, filtered_set
 
+#create preprocessing directory for new files 
+def create_preprocessing_directory(path):
+    # Combine the paths
+    new_folder_path = os.path.join(path, 'preprocessing')
+    
+    # Create the new folder
+    if not os.path.exists(new_folder_path):
+        os.makedirs(new_folder_path)
+        print(f"Folder preprocessing created successfully at {new_folder_path}")
+    else:
+        print(f"Folder preprocessing already exists at {new_folder_path}")
+        
 ##Filtering
 def remove_contaminants(chunk):
-    contams_mask = chunk['Protein.Group'].str.contains('cont_', case=False, na=False) #any na in Protein.Group will return False, this was giving an error with some report.tsv
+    # Create a contaminants mask based on the cont_ string and make sure all values are boolean
+    contams_mask = chunk['Protein.Group'].str.contains('cont_', case=False, na=False)
     if not all(isinstance(x, bool) for x in contams_mask):
         print("contams_mask contains non-boolean values:", contams_mask[~contams_mask.isin([True, False])])
 
@@ -107,8 +107,6 @@ def apply_filters(chunk, params):
     return chunk_filtered, chunk_filtered_out
 
 def  drop_cols(chunk):
-    '''This function is optional to reduce the size of your dataframe to necessary columns used downstream. 
-        List of all columns are written below the function. Suggested columns to keep are in the function itself'''
     cols_to_keep = [ 'Run',
                      'Protein.Group',
                      'Genes',

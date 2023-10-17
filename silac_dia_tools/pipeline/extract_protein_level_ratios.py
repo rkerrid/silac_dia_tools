@@ -45,6 +45,7 @@ def calculate_protein_level_ratios(path):
             new_row = {
                 'Run': group['Run'].iloc[0],
                 'Protein.Group': group['Protein.Group'].iloc[0],
+                
                 'Total intensity': total_intensity,
                 'L to stack ratio': median_ratio_l,
                 'M to stack ratio': median_ratio_m,

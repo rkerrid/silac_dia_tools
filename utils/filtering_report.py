@@ -10,6 +10,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import warnings
+
 
 # need to add description table for each sample and information about the params
 def filtering_qc(df, contams, filtered_out, path, params):
@@ -54,6 +56,8 @@ def filtering_qc(df, contams, filtered_out, path, params):
         runs = df_grouped.groups.keys()
 
         # For each run, plot the histograms and save to PDF
+        # Suppress runtime warnings
+        warnings.filterwarnings("ignore", category=RuntimeWarning) 
         for run in runs:
             plot_histograms_for_run(run, [df_grouped, contams_grouped, filtered_out_grouped], ['df', 'contams', 'filtered_out'])
             # )

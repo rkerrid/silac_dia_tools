@@ -7,7 +7,7 @@ Created on Mon Sep 25 18:20:42 2023
 Step 4: Calculate protein level intensities
 """
 import pandas as pd
-from silac_dia_tools.pipeline import dlfq_functions as lfq
+from utils import dlfq_functions as lfq
 import os
 
 def create_protein_intensity_directory(path):
@@ -62,7 +62,7 @@ def output_href(path):
     print('Saved H reference normalized protein intensities')
     return total_hnorm, nsp_hnorm, merged_df_h
         
-def output_unnorm(path, reference, pulse_channel='M'):
+def output_unnorm(path, contains_reference, pulse_channel='M'):
     create_protein_intensity_directory(path)
     #save unnormalized
     ratios = pd.read_csv(path + 'preprocessing/protein_ratios.csv')
@@ -81,7 +81,7 @@ def output_unnorm(path, reference, pulse_channel='M'):
     light_unnorm.to_csv(path+'protein intensities/light_unnorm.csv', sep=',')
     nsp_unnorm.to_csv(path+'protein intensities/nsp_unnorm.csv', sep=',')
     total_unnorm.to_csv(path+'protein intensities/total_unnorm.csv', sep=',')
-    if reference:
+    if contains_reference:
         reference = ratios[['Run', 'Protein.Group', 'H intensity']]
         reference = reference.pivot(index='Protein.Group', columns='Run', values='H intensity')
         reference.to_csv(path+'protein intensities/reference_unnorm.csv', sep=',')

@@ -14,9 +14,8 @@ def silac_precursor_qc(df, path):
     counts_df = df['Run'].value_counts()
     
     # Set up the PDF
-    
+    create_reports_directory(path)
     output_dir = path + '/reports'
-    create_reports_directory(output_dir)
     pdf_path = os.path.join(output_dir, 'silac_precursors_report.pdf')
     print(os.path.exists(pdf_path))
     df_grouped = df.groupby('Run')
@@ -48,10 +47,10 @@ def silac_precursor_qc(df, path):
             # )
             pdf.savefig()  # Saves the current figure into the PDF
             plt.close()
-        for run in runs:
-            plot_scatter_for_run(run, df_grouped)
-            pdf.savefig()  # Saves the current figure into the PDF
-            plt.close()
+        # for run in runs:
+        #     plot_scatter_for_run(run, df_grouped)
+        #     pdf.savefig()  # Saves the current figure into the PDF
+        #     plt.close()
             
             
 def plot_histograms_for_run(run, df_grouped, labels):
@@ -74,24 +73,24 @@ def plot_histograms_for_run(run, df_grouped, labels):
     plt.ylabel('Frequency')
     plt.legend()
 
-def plot_scatter_for_run(run, df_grouped):
-    """Plot scatter for a given run from the dataframe."""
-    # Extract the DataFrame for the specific run
-    df_run = df_grouped.get_group(run)
+# def plot_scatter_for_run(run, df_grouped):
+#     """Plot scatter for a given run from the dataframe."""
+#     # Extract the DataFrame for the specific run
+#     df_run = df_grouped.get_group(run)
 
-    # Calculate the required values
-    y_values = np.log10(df_run['H intensity'] + df_run['L intensity'])
+#     # Calculate the required values
+#     y_values = np.log10(df_run['H intensity'] + df_run['L intensity'])
     
-    # Avoid division by zero by adding a small constant
-    ratio = (df_run['H intensity'] + 1e-10) / (df_run['L intensity'] + 1e-10)
-    x_values = np.log2(ratio)
+#     # Avoid division by zero by adding a small constant
+#     ratio = (df_run['H intensity'] + 1e-10) / (df_run['L intensity'] + 1e-10)
+#     x_values = np.log2(ratio)
 
-    # Plotting
-    plt.scatter(x_values, y_values, alpha=0.5)
+#     # Plotting
+#     plt.scatter(x_values, y_values, alpha=0.5)
 
-    plt.title(f'Scatter Plot for {run}')
-    plt.xlabel("log2(H intensity / L intensity)")
-    plt.ylabel("log10(H intensity + L intensity)")
+#     plt.title(f'Scatter Plot for {run}')
+#     plt.xlabel("log2(H intensity / L intensity)")
+#     plt.ylabel("log10(H intensity + L intensity)")
 
 #create preprocessing directory for new files 
 def create_reports_directory(path):
