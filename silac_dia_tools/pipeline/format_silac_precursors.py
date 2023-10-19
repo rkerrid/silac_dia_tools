@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import sys
 sys.path.append('D:/Projects phd/General scripts for proteomics/SILAC DIA tools/')
-from utils import precursor_report
+from pipeline import precursor_report
 
 #computing SILAC intensities for each precursor (and quantification type)
 def format_silac_channels(path):
@@ -63,7 +63,7 @@ def parse_data_for_channel_info(df):
     
     # Concatenate the two dataframes to create the parsed dataframe
     parsed_df = pd.concat([ms1_translated_df, precursor_translated_df], ignore_index=True)
-    return parsed_df[['Run', 'Protein.Group', 'Precursor.Id', 'Precursor', 'Label', 'intensity', 'quantity type', 'Precursor.Quantity', 'Lib.PG.Q.Value']]
+    return parsed_df[['Run', 'Protein.Group', 'Genes', 'Precursor.Id', 'Precursor', 'Label', 'intensity', 'quantity type', 'Precursor.Quantity', 'Lib.PG.Q.Value']]
 
 
 def combine_modified_precursors(df):
@@ -86,7 +86,7 @@ def combine_modified_precursors(df):
     # Merge the pivoted_df with the original df to get other columns back
     df = pd.merge(agg_df.drop(columns=['Label', 'intensity']), pivoted_df, on=['Run', 'Protein.Group', 'Precursor', 'quantity type'])
 
-    df = df.drop_duplicates()#subset=['Run', 'Protein.Group', 'Precursor', 'quantity type', 'Lib.PG.Q.Value']
+    df = df.drop_duplicates()
     return df
 
 #Stacking intensities and calculating intensity to stack ratio

@@ -11,7 +11,7 @@ import pandas as pd
 import os
 import json
 import operator
-from utils import filtering_report
+from pipeline import filtering_report
 
 # Defining the relative path to configs directory 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'configs')

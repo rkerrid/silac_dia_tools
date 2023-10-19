@@ -5,10 +5,11 @@ Created on Fri Oct 13 08:41:02 2023
 @author: rkerrid
 """
 import pandas as pd
+pd.set_option('display.max_columns', None)
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+import icecream as ic
 from matplotlib.backends.backend_pdf import PdfPages
 from fpdf import FPDF
 import os
@@ -51,7 +52,19 @@ def plot_data(ax, df, mask, color, label, x_col, y_col, plot_median=False):
         ax.axhline(y=median_value, color='grey', linestyle='-', linewidth=4, alpha=0.5, label=f'Median {label}')
     ax.legend()
 
-
+def add_href_intensity(df):
+    df = df.copy()
+    href = pd.read_csv(f'{test_data_bm}protein intensities/reference_href.csv')
+    href = href[['Protein.Group','Popeye_20230322_MGE_HStdia_S5_sim1_11_rep3_A1_1_3553']] # get the x asiy for all plots which will be the href from S5 rep3, df is Protein.Group, 1a
+    href.rename(columns = {'Popeye_20230322_MGE_HStdia_S5_sim1_11_rep3_A1_1_3553':'href'}, inplace=True)
+    
+    df = df.merge(href[['Protein.Group', 'href']],
+                  on='Protein.Group',
+                  how='left')
+    df['href'] = np.log10(df['href'])
+     
+    return df
+    
 def plot_ratios(df, expected_human, expected_ecoli, title):
     df_S4 = filter_and_rename(df, 'S4', 'rep3')
     df_S5 = filter_and_rename(df, 'S5', 'rep3')
@@ -59,21 +72,22 @@ def plot_ratios(df, expected_human, expected_ecoli, title):
     
     mask_ecoli = df_S5['Protein.Group'].str.contains('ECOLI_')
     mask_human = ~mask_ecoli
-    
     df_S5, median_log_human = shift_ratios(df_S5, mask_human)
+   
+    df_S5 = add_href_intensity(df_S5)
     
     fig, ax = plt.subplots(1, 2, figsize=(20, 6), sharey=True)
     fig.suptitle(title, fontsize=16)
     
     ax[0].set_title('Ecoli Data')
-    plot_data(ax[0], df_S5, mask_ecoli, 'red', 'ECOLI', 'log_Measurement', 'log_shifted_ratio', plot_median=True)
+    plot_data(ax[0], df_S5, mask_ecoli, 'red', 'ECOLI', 'href', 'log_shifted_ratio', plot_median=True)
     
     ax[1].set_title('Human Data')
-    plot_data(ax[1], df_S5, mask_human, 'blue', 'Human', 'log_Measurement', 'log_shifted_ratio')
+    plot_data(ax[1], df_S5, mask_human, 'blue', 'Human', 'href', 'log_shifted_ratio')
     
     ax[0].set_ylim(-1.5, 1)
-    ax[0].set_xlim(2, 7)
-    ax[1].set_xlim(2, 7)
+    ax[0].set_xlim(1.5, 6)
+    ax[1].set_xlim(1.5, 6)
     for a in ax:
         a.axhline(y=np.log10(expected_human) , color='blue', linestyle='--', label='Expected Human')
         a.axhline(y=np.log10(expected_ecoli) , color='red', linestyle='--', label='Expected Ecoli')
@@ -82,7 +96,7 @@ def plot_ratios(df, expected_human, expected_ecoli, title):
     plt.show()
     return fig  # return the figure object
 
-def save_plot_to_pdf(df, expected_human, expected_ecoli, title, filename):
+def save_plot_to_pdf(df,  expected_human, expected_ecoli, title, filename):
     fig = plot_ratios(df, expected_human, expected_ecoli, title)  # Get the figure object
     os.makedirs(os.path.dirname(filename), exist_ok=True)  
     fig.savefig(filename)  # Save the figure object directly
@@ -91,11 +105,11 @@ def save_plot_to_pdf(df, expected_human, expected_ecoli, title, filename):
  
 # Process diann output files: filtering, formatting silac precursors, ratios, intensities (directLFQ) with 'H pulse'
 # f_df, contams_df, fout_df = fdia.import_and_filter(test_data_bm, update=True)
-pre_df = pdia.format_silac_channels(test_data_bm)
-ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
-idia.output_dlfq(test_data_bm, pulse_channel='H')
-idia.output_unnorm(test_data_bm, True, pulse_channel='H')
-idia.output_href(test_data_bm)
+# pre_df = pdia.format_silac_channels(test_data_bm)
+# ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
+# idia.output_dlfq(test_data_bm, pulse_channel='H')
+# idia.output_unnorm(test_data_bm, True, pulse_channel='H')
+# idia.output_href(test_data_bm)
 
 # # import dlfq normalized proteomes and compare s5:s4 ecoli and human ratios rep3
 df_light_lfq = pd.read_csv(f'{test_data_bm}protein intensities/light_dlfq.csv')
@@ -107,6 +121,7 @@ df_light_href = pd.read_csv(f'{test_data_bm}protein intensities/light_href.csv')
 df_heavy_href = pd.read_csv(f'{test_data_bm}protein intensities/reference_href.csv')
 df_total_href = df_heavy_href.copy()
 df_total_href.iloc[:,1:] = df_heavy_href.iloc[:,1:].add(df_light_href.iloc[:,1:])
+
 
 # # import unnormalized proteomes and compare s5:s4 ecoli and human ratios rep3
 df_light = pd.read_csv(f'{test_data_bm}protein intensities/light_unnorm.csv')

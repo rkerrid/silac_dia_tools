@@ -40,7 +40,7 @@ def calculate_protein_level_ratios(path):
             median_ratio_m = np.exp2(median_log2_ratio_m)
             median_ratio_h = np.exp2(median_log2_ratio_h)
             
-            total_intensity = np.median(precursor_group['Precursor.Quantity'])
+            total_intensity = np.sum(precursor_group['Precursor.Quantity'])
             # Create new row to add to new dataframe containing ratios and precursor translated quantity
             new_row = {
                 'Run': group['Run'].iloc[0],

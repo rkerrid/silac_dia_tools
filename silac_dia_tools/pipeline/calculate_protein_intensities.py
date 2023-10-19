@@ -7,7 +7,7 @@ Created on Mon Sep 25 18:20:42 2023
 Step 4: Calculate protein level intensities
 """
 import pandas as pd
-from utils import dlfq_functions as lfq
+from pipeline import dlfq_functions as lfq
 import os
 
 def create_protein_intensity_directory(path):
