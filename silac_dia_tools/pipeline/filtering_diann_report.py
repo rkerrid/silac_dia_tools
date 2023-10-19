@@ -4,14 +4,21 @@ Created on Mon Sep 18 11:43:50 2023
 
 @author: rkerrid
 
-Step 1: Module for filtering report.tsv output (DIA-NN version 1.8.1)
+Step 1: Module for filtering report.tsv output (DIA-NN version 1.8.1) with
+SILAC settings as described in the README.md
+
+Note: This script filters for contaminants by looking for the 'cont_' substring
+in Protein.Groups so make sure your report.tsv is annotated in the same way or 
+edit the remove_contaminants() funciton.
 
 """
 import pandas as pd
 import os
 import json
 import operator
-from pipeline import filtering_report
+from pipeline.report import filtering_report
+from icecream import ic
+ic.disable()
 
 # Defining the relative path to configs directory 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'configs')
@@ -34,10 +41,12 @@ def import_and_filter(path, update=False):
     count = 1
     with open(f"{path}report.tsv", 'r', encoding='utf-8') as file:
         for chunk in pd.read_table(file,sep="\t", chunksize=chunk_size):
+            ic(chunk)
             # Apply filtering to each chunk
             chunk, contam = remove_contaminants(chunk)
             chunk, filtered_out = apply_filters(chunk, params)
             chunk = drop_cols(chunk) 
+            ic(chunk)
             # Append chunks from respective filtering steps
             filtered_set.append(filtered_out)
             contams.append(contam)
@@ -107,9 +116,10 @@ def apply_filters(chunk, params):
     return chunk_filtered, chunk_filtered_out
 
 def  drop_cols(chunk):
+    chunk['Genes'] = chunk['Genes'].fillna('')
+    chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
     cols_to_keep = [ 'Run',
                      'Protein.Group',
-                     'Genes',
                      'Stripped.Sequence',
                      'Precursor.Id', 
                      'Precursor.Charge',

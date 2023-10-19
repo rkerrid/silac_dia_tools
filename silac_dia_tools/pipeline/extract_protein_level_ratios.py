@@ -10,7 +10,8 @@ Step 3: extract ratios and format tsv file for downstream
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-
+from pipeline.report import protein_group_report
+from icecream import ic
 def select_precursor_translated(group):
     return group[group['quantity type'] == 'Precursor.Translated']
 
@@ -40,7 +41,7 @@ def calculate_protein_level_ratios(path):
             median_ratio_m = np.exp2(median_log2_ratio_m)
             median_ratio_h = np.exp2(median_log2_ratio_h)
             
-            total_intensity = np.sum(precursor_group['Precursor.Quantity'])
+            total_intensity = np.sum(ms1_group['Precursor.Quantity'])
             # Create new row to add to new dataframe containing ratios and precursor translated quantity
             new_row = {
                 'Run': group['Run'].iloc[0],
@@ -64,8 +65,10 @@ def calculate_protein_level_ratios(path):
     print('Total sets of precursors that didnt meet mimimum unique precursor requirements ', protein_missed, ' out of ', len(protein_precursors))
     
     protein_ratios = pd.DataFrame(protein_data)
+    ic(protein_ratios)
     print('Saving protein_ratios.csv')
     protein_ratios.to_csv(path+'preprocessing/protein_ratios.csv', sep=',')
+    protein_group_report.create_report(protein_ratios, path)
     print('Done!')
     return protein_ratios
 

@@ -4,25 +4,29 @@ Created on Mon Sep 18 12:06:59 2023
 
 @author: rkerrid
 
-Step 2: Module for formatting report_filtered.tsv output from step one(DIA-NN v 1.8.2 beta 11)
+Step 2: Module for formatting report_filtered.tsv output from step one
 
 """
 import pandas as pd
 import numpy as np
 import sys
 sys.path.append('D:/Projects phd/General scripts for proteomics/SILAC DIA tools/')
-from pipeline import precursor_report
+from pipeline.report import precursor_report
+from icecream import ic
 
 #computing SILAC intensities for each precursor (and quantification type)
 def format_silac_channels(path):
-    new_path = path+'preprocessing/'
+    new_path = f'{path}preprocessing/'
     df = import_filtered(new_path)
+    ic(df)
     df = parse_data_for_channel_info(df) 
+    ic(df)
     df = combine_modified_precursors(df)
     df = stack_intensities(df)
     df = drop_nan(df)
+    print('Generating report...')
     precursor_report.silac_precursor_qc(df, path)
-    print('Saving precursors')
+    print('Saving precursors...')
     df.to_csv(new_path+'silac_precursors.tsv', sep='\t')
     print('Done!')
     return df
@@ -35,10 +39,10 @@ def import_filtered(path, update=False):
     count = 1
     print("Importing report_filtered.tsv")
     # Iterate through the file in chunks and apply preprocessing functions
-    for chunk in pd.read_table(path + 'report_filtered.tsv',sep="\t", chunksize=chunk_size):
+    for chunk in pd.read_table( f'{path}report_filtered.tsv',sep="\t", chunksize=chunk_size):
         chunks.append(chunk)
         if update:
-            print('chunk ', count,' processed')
+            print('Importing chunk ', count)
             count+=1
         # if count == 2:
         #     break
@@ -63,7 +67,7 @@ def parse_data_for_channel_info(df):
     
     # Concatenate the two dataframes to create the parsed dataframe
     parsed_df = pd.concat([ms1_translated_df, precursor_translated_df], ignore_index=True)
-    return parsed_df[['Run', 'Protein.Group', 'Genes', 'Precursor.Id', 'Precursor', 'Label', 'intensity', 'quantity type', 'Precursor.Quantity', 'Lib.PG.Q.Value']]
+    return parsed_df[['Run', 'Protein.Group', 'Precursor.Id', 'Precursor', 'Label', 'intensity', 'quantity type', 'Precursor.Quantity', 'Lib.PG.Q.Value']]
 
 
 def combine_modified_precursors(df):
@@ -74,7 +78,7 @@ def combine_modified_precursors(df):
         'Lib.PG.Q.Value': 'first',
     }
     # Aggregate data using groupby and agg function
-    agg_df = df.groupby(['Run', 'Protein.Group', 'Precursor', 'quantity type', 'Label']).agg(agg_functions).reset_index()
+    agg_df = df.groupby(['Run', 'Protein.Group',  'Precursor', 'quantity type', 'Label']).agg(agg_functions).reset_index()
 
     # Pivot the table to get 'H', 'M', 'L' intensities in separate columns
     pivoted_df = agg_df.pivot_table(index=['Run', 'Protein.Group', 'Precursor', 'quantity type'], columns='Label', values='intensity', fill_value=0).reset_index()
@@ -84,10 +88,41 @@ def combine_modified_precursors(df):
     pivoted_df = pivoted_df.rename(columns={'H': 'H intensity', 'M': 'M intensity', 'L': 'L intensity'})
 
     # Merge the pivoted_df with the original df to get other columns back
-    df = pd.merge(agg_df.drop(columns=['Label', 'intensity']), pivoted_df, on=['Run', 'Protein.Group', 'Precursor', 'quantity type'])
+    df = pd.merge(agg_df.drop(columns=['Label', 'intensity']), pivoted_df, on=['Run', 'Protein.Group',  'Precursor', 'quantity type'])
 
     df = df.drop_duplicates()
     return df
+
+
+
+# def combine_modified_precursors(df):
+#     print('combining modified precursors')
+    
+#     # Define aggregation functions for columns
+#     agg_functions = {
+#         'intensity': 'first',
+#         'Lib.PG.Q.Value': 'first',
+#     }
+#     ic(df)
+#     # Aggregate data using groupby and agg function
+#     agg_df = df.groupby(['Run', 'Protein.Group', 'Genes', 'Precursor', 'quantity type', 'Label']).agg(agg_functions)
+#     ic(agg_df)
+#     # Resetting index and ensuring 'Genes' is not in the index
+#     agg_df = agg_df.reset_index()
+    
+#     # Pivot the table to get 'H', 'M', 'L' intensities in separate columns
+#     pivoted_df = agg_df.pivot_table(index=['Run', 'Protein.Group', 'Genes', 'Precursor', 'quantity type'], columns='Label', values='intensity', fill_value=0).reset_index()
+    
+#     # Rename columns based on the label
+#     pivoted_df.columns.name = None
+#     pivoted_df = pivoted_df.rename(columns={'H': 'H intensity', 'M': 'M intensity', 'L': 'L intensity'})
+    
+#     # Merge the pivoted_df with the original df to get other columns back
+#     df = pd.merge(agg_df.drop(columns=['Label', 'intensity']), pivoted_df, on=['Run', 'Protein.Group', 'Genes', 'Precursor', 'quantity type'])
+    
+#     df = df.drop_duplicates()
+#     return df
+
 
 #Stacking intensities and calculating intensity to stack ratio
 def stack_intensities(df):
