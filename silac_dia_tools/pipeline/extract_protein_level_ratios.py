@@ -5,13 +5,15 @@ Created on Mon Sep 18 15:36:16 2023
 @author: rkerrid
 
 Step 3: extract ratios and format tsv file for downstream
+
 """     
             
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from pipeline.report import protein_group_report
-from icecream import ic
+
+
 def select_precursor_translated(group):
     return group[group['quantity type'] == 'Precursor.Translated']
 
@@ -65,7 +67,6 @@ def calculate_protein_level_ratios(path):
     print('Total sets of precursors that didnt meet mimimum unique precursor requirements ', protein_missed, ' out of ', len(protein_precursors))
     
     protein_ratios = pd.DataFrame(protein_data)
-    ic(protein_ratios)
     print('Saving protein_ratios.csv')
     protein_ratios.to_csv(path+'preprocessing/protein_ratios.csv', sep=',')
     protein_group_report.create_report(protein_ratios, path)

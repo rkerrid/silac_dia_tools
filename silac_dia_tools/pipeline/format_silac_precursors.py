@@ -14,6 +14,7 @@ sys.path.append('D:/Projects phd/General scripts for proteomics/SILAC DIA tools/
 from pipeline.report import precursor_report
 from icecream import ic
 
+
 #computing SILAC intensities for each precursor (and quantification type)
 def format_silac_channels(path):
     new_path = f'{path}preprocessing/'
@@ -92,36 +93,6 @@ def combine_modified_precursors(df):
 
     df = df.drop_duplicates()
     return df
-
-
-
-# def combine_modified_precursors(df):
-#     print('combining modified precursors')
-    
-#     # Define aggregation functions for columns
-#     agg_functions = {
-#         'intensity': 'first',
-#         'Lib.PG.Q.Value': 'first',
-#     }
-#     ic(df)
-#     # Aggregate data using groupby and agg function
-#     agg_df = df.groupby(['Run', 'Protein.Group', 'Genes', 'Precursor', 'quantity type', 'Label']).agg(agg_functions)
-#     ic(agg_df)
-#     # Resetting index and ensuring 'Genes' is not in the index
-#     agg_df = agg_df.reset_index()
-    
-#     # Pivot the table to get 'H', 'M', 'L' intensities in separate columns
-#     pivoted_df = agg_df.pivot_table(index=['Run', 'Protein.Group', 'Genes', 'Precursor', 'quantity type'], columns='Label', values='intensity', fill_value=0).reset_index()
-    
-#     # Rename columns based on the label
-#     pivoted_df.columns.name = None
-#     pivoted_df = pivoted_df.rename(columns={'H': 'H intensity', 'M': 'M intensity', 'L': 'L intensity'})
-    
-#     # Merge the pivoted_df with the original df to get other columns back
-#     df = pd.merge(agg_df.drop(columns=['Label', 'intensity']), pivoted_df, on=['Run', 'Protein.Group', 'Genes', 'Precursor', 'quantity type'])
-    
-#     df = df.drop_duplicates()
-#     return df
 
 
 #Stacking intensities and calculating intensity to stack ratio

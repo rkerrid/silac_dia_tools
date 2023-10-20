@@ -6,13 +6,12 @@ Created on Mon Sep 25 18:20:42 2023
 
 Step 4: Calculate protein level intensities
 
-todo:
-    - protein intensities report, get   # nsp to light ratio and light to H ratio for each method
-    
+
 """
 import pandas as pd
 from pipeline.utils import dlfq_functions as dlfq
 import os
+
 
 def create_protein_intensity_directory(path):
     # Combine the paths
@@ -108,7 +107,7 @@ def output_dlfq(path, pulse_channel='M'):
     create_protein_intensity_directory(path)
     
     # Import ratios
-    ratios = pd.read_csv('f{path}preprocessing/protein_ratios.csv')
+    ratios = pd.read_csv(f'{path}preprocessing/protein_ratios.csv')
     nsp_ratio = pulse_channel + ' to stack ratio'
   
     # Read in precursors and save ms1 translated only file as input into directLFQ

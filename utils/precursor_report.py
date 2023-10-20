@@ -43,7 +43,7 @@ def silac_precursor_qc(df, path):
 
         # For each run, plot the histograms and save to PDF
         for run in runs:
-            plot_histograms_for_run(run, df_grouped, ['H intensity', 'M intensity', 'L intensity'])
+            plot_histograms_for_run(run, df_grouped, ['H intensity', 'L intensity', 'M intensity'])
             
             # )
             pdf.savefig()  # Saves the current figure into the PDF

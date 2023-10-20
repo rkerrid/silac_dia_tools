@@ -9,7 +9,7 @@ pd.set_option('display.max_columns', None)
 import matplotlib.pyplot as plt
 import numpy as np
 
-import icecream as ic
+from icecream import ic
 from matplotlib.backends.backend_pdf import PdfPages
 from fpdf import FPDF
 import os
@@ -43,8 +43,8 @@ def shift_ratios(df, mask):
 
 def plot_data(ax, df, mask, color, label, x_col, y_col, plot_median=False):
     ax.scatter(df.loc[mask, x_col], df.loc[mask, y_col], color=color, alpha=0.5)
-    ax.set_xlabel(f'log10({x_col})')
-    ax.set_ylabel(f'log10({y_col})')
+    ax.set_xlabel('log10(Intensity)')
+    ax.set_ylabel('log10(S4:S5)')
     ax.grid(True)
     
     if plot_median:
@@ -86,8 +86,8 @@ def plot_ratios(df, expected_human, expected_ecoli, title):
     plot_data(ax[1], df_S5, mask_human, 'blue', 'Human', 'href', 'log_shifted_ratio')
     
     ax[0].set_ylim(-1.5, 1)
-    ax[0].set_xlim(1.5, 6)
-    ax[1].set_xlim(1.5, 6)
+    ax[0].set_xlim(2.5, 7)
+    ax[1].set_xlim(2.5, 7)
     for a in ax:
         a.axhline(y=np.log10(expected_human) , color='blue', linestyle='--', label='Expected Human')
         a.axhline(y=np.log10(expected_ecoli) , color='red', linestyle='--', label='Expected Ecoli')
@@ -104,12 +104,12 @@ def save_plot_to_pdf(df,  expected_human, expected_ecoli, title, filename):
 
  
 # Process diann output files: filtering, formatting silac precursors, ratios, intensities (directLFQ) with 'H pulse'
-# f_df, contams_df, fout_df = fdia.import_and_filter(test_data_bm, update=True)
-# pre_df = pdia.format_silac_channels(test_data_bm)
-# ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
-# idia.output_dlfq(test_data_bm, pulse_channel='H')
-# idia.output_unnorm(test_data_bm, True, pulse_channel='H')
-# idia.output_href(test_data_bm)
+f_df, contams_df, fout_df = fdia.import_and_filter(test_data_bm, update=True)
+pre_df = pdia.format_silac_channels(test_data_bm)
+ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
+idia.output_dlfq(test_data_bm, pulse_channel='H')
+idia.output_unnorm(test_data_bm, True, pulse_channel='H')
+idia.output_href(test_data_bm)
 
 # # import dlfq normalized proteomes and compare s5:s4 ecoli and human ratios rep3
 df_light_lfq = pd.read_csv(f'{test_data_bm}protein intensities/light_dlfq.csv')
