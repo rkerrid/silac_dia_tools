@@ -1,0 +1,3 @@
+# GitHub repositories
+git+https://github.com/MannLabs/alphapept.git
+git+https://github.com/MannLabs/directlfq.git
