@@ -18,7 +18,7 @@ test_data_no_spikein = 'C:/data/silac_dia_tools_files/data/no spikein data/'
 test_data_spikein = 'C:/data/silac_dia_tools_files/data/spikein data/'
 
 # # #test filter
-# df_si = fdia.import_and_filter(test_data_spikein, update=True)
+df_si = fdia.import_and_filter(test_data_spikein, update=True)
 # df_nosi = fdia.import_and_filter(test_data_no_spikein, update=True)
 
 # # #test format precursors
