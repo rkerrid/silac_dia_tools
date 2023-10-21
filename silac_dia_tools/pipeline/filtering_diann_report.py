@@ -23,8 +23,8 @@ from icecream import ic
 ic.disable()
 
 # Defining the relative path to configs directory 
-# CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'configs')
-json_path = resource_filename('silac_dia_tools', 'configs/filtering_parameters.json')
+CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', 'configs')
+# json_path = 'filtering_parameters.json'
 
 def import_and_filter(path, update=False):
     # Define chunk size (number of rows to load at a time)
@@ -35,7 +35,7 @@ def import_and_filter(path, update=False):
     
     # Load filtering parameters from JSON
     print('Loading filtering parameters')
-    # json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
+    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
     with open(json_path, 'r') as f:
         params = json.load(f)
         
