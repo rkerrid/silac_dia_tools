@@ -11,7 +11,7 @@ Step 3: extract ratios and format tsv file for downstream
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from pipeline.report import protein_group_report
+from silac_dia_tools.pipeline.report import protein_group_report
 
 
 def select_precursor_translated(group):

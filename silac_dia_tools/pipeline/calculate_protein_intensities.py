@@ -9,7 +9,7 @@ Step 4: Calculate protein level intensities
 
 """
 import pandas as pd
-from pipeline.utils import dlfq_functions as dlfq
+from silac_dia_tools.pipeline.utils import dlfq_functions as dlfq
 import os
 
 

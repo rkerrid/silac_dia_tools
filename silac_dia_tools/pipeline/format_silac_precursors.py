@@ -9,7 +9,7 @@ Step 2: Module for formatting report_filtered.tsv output from step one
 """
 import pandas as pd
 import numpy as np
-from pipeline.report import precursor_report
+from silac_dia_tools.pipeline.report import precursor_report
 
 
 #computing SILAC intensities for each precursor (and quantification type)

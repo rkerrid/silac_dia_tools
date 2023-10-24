@@ -22,7 +22,8 @@ from silac_dia_tools.pipeline import format_silac_precursors as pdia
 from silac_dia_tools.pipeline import extract_protein_level_ratios as rdia
 from silac_dia_tools.pipeline import calculate_protein_intensities as idia
 
-test_data_bm = 'C:/data/silac_dia_tools_files/data/BM data/'                   
+test_data_bm = 'C:/data/silac_dia_tools_files/data/BM data/' 
+test_data_bm = 'G:/My Drive/Data/data/BM data/'                  
 
 def filter_and_rename(df, string, rep_string):
     cols = [col for col in df.columns if string in col and rep_string in col]
