@@ -13,7 +13,9 @@ setup(
         'icecream',
         'seaborn',
         'fpdf',
-        'alphapept @ git+https://github.com/MannLabs/alphapept.git@master#egg=alphapept',  # specify the branch, tag, or commit
-        'directlfq @ git+https://github.com/MannLabs/directlfq.git@master#egg=directlfq',  # specify the branch, tag, or commit
+        'tqdm',#need to test
+        #'alphapept @ git+https://github.com/MannLabs/alphapept.git@master#egg=alphapept',  # specify the branch, tag, or commit
+        "directlfq @ git+https://github.com/MannLabs/directlfq.git@development#egg=directlfq[stable,development-stable]",# specify the branch, tag, or commit
+        
     ],
 )

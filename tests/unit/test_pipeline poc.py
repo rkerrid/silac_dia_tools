@@ -14,8 +14,12 @@ from silac_dia_tools.pipeline import calculate_protein_intensities as idia
 from icecream import ic
 
 
+#work
 test_data_no_spikein = 'C:/data/silac_dia_tools_files/data/no spikein data/'
 test_data_spikein = 'C:/data/silac_dia_tools_files/data/spikein data/'
+# home
+test_data_no_spikein = 'G:/My Drive/Data/data/no spikein data/'
+test_data_spikein = 'G:/My Drive/Data/data/spikein data/'
 
 # # #test filter
 df_si = fdia.import_and_filter(test_data_spikein, update=True)
