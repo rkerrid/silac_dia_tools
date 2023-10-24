@@ -16,11 +16,9 @@ import pandas as pd
 import os
 import json
 import operator
-from pipeline.report import filtering_report
+from silac_dia_tools.pipeline.report import filtering_report
 from pkg_resources import resource_filename
 
-from icecream import ic
-ic.disable()
 
 # Defining the relative path to configs directory 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', 'configs')
@@ -44,12 +42,12 @@ def import_and_filter(path, update=False):
     count = 1
     with open(f"{path}report.tsv", 'r', encoding='utf-8') as file:
         for chunk in pd.read_table(file,sep="\t", chunksize=chunk_size):
-            ic(chunk)
+          
             # Apply filtering to each chunk
             chunk, contam = remove_contaminants(chunk)
             chunk, filtered_out = apply_filters(chunk, params)
             chunk = drop_cols(chunk) 
-            ic(chunk)
+            
             # Append chunks from respective filtering steps
             filtered_set.append(filtered_out)
             contams.append(contam)

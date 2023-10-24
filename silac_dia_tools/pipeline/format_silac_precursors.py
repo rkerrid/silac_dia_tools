@@ -9,19 +9,14 @@ Step 2: Module for formatting report_filtered.tsv output from step one
 """
 import pandas as pd
 import numpy as np
-import sys
-sys.path.append('D:/Projects phd/General scripts for proteomics/SILAC DIA tools/')
 from pipeline.report import precursor_report
-from icecream import ic
 
 
 #computing SILAC intensities for each precursor (and quantification type)
 def format_silac_channels(path):
     new_path = f'{path}preprocessing/'
     df = import_filtered(new_path)
-    ic(df)
     df = parse_data_for_channel_info(df) 
-    ic(df)
     df = combine_modified_precursors(df)
     df = stack_intensities(df)
     df = drop_nan(df)

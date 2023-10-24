@@ -17,10 +17,10 @@ import os
 import sys
 print(sys.path)
 
-from pipeline import filtering_diann_report as fdia
-from pipeline import format_silac_precursors as pdia
-from pipeline import extract_protein_level_ratios as rdia
-from pipeline import calculate_protein_intensities as idia
+from silac_dia_tools.pipeline import filtering_diann_report as fdia
+from silac_dia_tools.pipeline import format_silac_precursors as pdia
+from silac_dia_tools.pipeline import extract_protein_level_ratios as rdia
+from silac_dia_tools.pipeline import calculate_protein_intensities as idia
 
 test_data_bm = 'C:/data/silac_dia_tools_files/data/BM data/'                   
 
