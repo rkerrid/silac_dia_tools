@@ -65,3 +65,8 @@ Switch MBR off
 
 ## Label check requirements
 The label check module requires a thermo .raw file for the heavy spike-in aquired in DDA mode. After processing this file with MQ with requantify switched on, the resulting msms.txt and evidence.txt are used along with the .raw file to automate the label check and calculate labeling efficiency (still in progress).
+
+# Version
+0.2.0 for testing
+
+Notes: 0.2.0 is a stable realease including all core features for the pipeline and label check. The software should be useable in house and ready for testing (Alan)
