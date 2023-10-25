@@ -20,6 +20,10 @@ Adtitionally see example scripts (still in progress).
 
 Follow the steps below to install the package:
 
+First clone the repository to your directory - git clone https://github.com/rkerrid/silac_dia_tools.git
+
+Then with conda:
+
 1. **Create a new conda environment:**
    ```bash
    conda create --name myenv python=3.8
