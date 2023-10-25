@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='silac_dia_tools',
-    version='0.1',
+    version='0.2.0',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
@@ -14,7 +14,7 @@ setup(
         'seaborn',
         'fpdf',
         'tqdm',#need to test
-        #'alphapept @ git+https://github.com/MannLabs/alphapept.git@master#egg=alphapept',  # specify the branch, tag, or commit
+        'alphapept @ git+https://github.com/MannLabs/alphapept.git@master#egg=alphapept[stable]',  # specify the branch, tag, or commit
         "directlfq @ git+https://github.com/MannLabs/directlfq.git@development#egg=directlfq[stable,development-stable]",# specify the branch, tag, or commit
         
     ],
