@@ -4,13 +4,33 @@ Created on Sun Aug 13 13:00:02 2023
 
 @author: rkerrid
 """
-# pip install, pythonnet, clr
+
 import pandas as pd
 import numpy as np
 from alphapept.pyrawfilereader import RawFileReader
 import logging
 from tqdm import tqdm
+import os
 
+
+def list_raw_files(directory_path):
+    """
+    Function to list all files ending with '.raw' in a directory
+    
+    Parameters:
+    directory_path (str): Path to the directory
+    
+    Returns:
+    list: List of filenames ending with '.raw'
+    """
+    raw_files = []  # Create an empty list to store the filenames
+    
+    # Iterate over the filenames in the directory
+    for filename in os.listdir(directory_path):
+        if filename.endswith(".raw"):  # Check if the filename ends with ".raw"
+            raw_files.append(filename)  # Add the filename to the list
+    print(f"found the following raw files for label check {raw_files}")
+    return raw_files  # Return the list of filenames
 
 ##Import MQ
 def import_file(file):
@@ -24,8 +44,15 @@ def import_file(file):
 # the proteomics visualization package from the Mann lab https://github.com/MannLabs/ProteomicsVisualization and 
 # Alphapept from the same lab https://github.com/MannLabs/alphapept
 
-def get_raw_data(path, raw_file, no_of_peaks):
-    return load_thermo_raw(path + raw_file,no_of_peaks)  
+def get_raw_data(path, raw_files, no_of_peaks):
+    ms1_dfs = {}
+
+    for raw_file in raw_files:
+        print(f"Begin processing {raw_file}")
+        # Extracting filename without extension to use as dictionary key
+        file_name = raw_file.split('.')[0]  
+        ms1_dfs[file_name] = load_thermo_raw(path + raw_file, no_of_peaks)
+    return ms1_dfs
     
 def load_thermo_raw(
     raw_file,

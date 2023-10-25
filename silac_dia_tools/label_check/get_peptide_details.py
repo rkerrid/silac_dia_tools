@@ -20,27 +20,8 @@ def extract_values(ms1_df, peptide_details):
 
 
 ##Getting peptide details from MQ files
-# Extract peptide details
-def get_peptide(peptide, evidence):
-    full_scan_number = peptide["Precursor_full_scan_number"]
-    evidence_id = peptide['Evidence_ID']
-    labeling_state = peptide['Labeling_state']
-    peptide_details = evidence[evidence["id"] == evidence_id][["Sequence", "m/z", "Charge", "Retention_time"]]
-    peptide_details['scan_number'] = full_scan_number
-    sequence = peptide_details["Sequence"].values[0]
-    peptide_details["AA_mass"] = get_AA_mass(sequence)
-    peptide_details["labeling_state"] = labeling_state
-    return peptide_details  # Return peptide_details instead of peptide
-
-def get_AA_mass(sequence):
-    if "K" in sequence:
-        return 8
-    elif "R" in sequence:
-        return 10
-    return 1
-
 # Locate the most abundant peptides containing R, K, and P
-def get_most_abundant_KRP(msms, evidence):
+def get_most_abundant_krp_peptide(msms, evidence):
     msms = msms[msms['Proteins'].notna()]
     df_sorted = msms.sort_values(by='Precursor_Intensity', ascending=False)
 
@@ -54,18 +35,39 @@ def get_most_abundant_KRP(msms, evidence):
     for condition in conditions:
         sequence = df_sorted[condition].iloc[0]
         df_sorted = df_sorted[df_sorted['Sequence'] != sequence['Sequence']]
-        peptides.append(get_peptide(sequence, evidence))
+        peptides.append(get_peptide_details(sequence, evidence))
 
-    return peptides
+    return peptides #list of peptide details
+
+# Extract peptide details
+def get_peptide_details(peptide, evidence):
+    full_scan_number = peptide["Precursor_full_scan_number"]
+    evidence_id = peptide['Evidence_ID']
+    labeling_state = peptide['Labeling_state']
+    
+    peptide_details = evidence[evidence["id"] == evidence_id][['Raw_file','Sequence', 'm/z', 'Charge', 'Retention_time']]    
+    peptide_details['scan_number'] = full_scan_number
+    peptide_details["labeling_state"] = labeling_state
+    
+    sequence = peptide_details["Sequence"].values[0] 
+    peptide_details["AA_mass"] = get_AA_mass(sequence)
+    
+    return peptide_details  
+
+def get_AA_mass(sequence):
+    if "K" in sequence:
+        return 8
+    elif "R" in sequence:
+        return 10
+    return 1
 
 # Locate the most abundant heavy peptide
 def get_most_abundant_heavy(msms, evidence):
     msms = msms[msms['Proteins'].notna()]
     msms = msms[msms["Labeling_state"]==1]
     df_sorted = msms.sort_values(by='Precursor_Intensity', ascending=False)
-    print( df_sorted)
-    largest_heavy = df_sorted.iloc[3]
-    peptide = get_peptide(largest_heavy, evidence)
+    largest_heavy = df_sorted.iloc[0]
+    peptide = get_peptide_details(largest_heavy, evidence)
     return peptide
     
 

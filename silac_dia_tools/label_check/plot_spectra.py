@@ -5,8 +5,19 @@ Created on Sun Aug 13 13:13:37 2023
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
+
+# import files to plot
+def import_ms_data_for_plotting(path, peptides):    
+    for peptide_details in peptides:
+        sequence = peptide_details["Sequence"].values[0]
+        df = pd.read_csv(f"{path}{sequence}.csv")
+        mz = df.mz
+        intensity = df.intensity
+        #plot each peptide
+        scan_plot(mz, intensity, peptide_details)
 
 def plot_points_and_lines(mz_values, intensity_values, expected_light_peak, expected_heavy_peak):
     for x, y in zip(mz_values, intensity_values):
@@ -58,6 +69,7 @@ def scan_plot(mz_values, intensity_values, peptide_details):
     labeling_state = peptide_details["labeling_state"].values[0]
     AA_mass = peptide_details["AA_mass"].values[0]
     scan_number = peptide_details["scan_number"].values[0]
+    raw_file = peptide_details['Raw_file'].item()
     if labeling_state == 1:
         expected_heavy_peak = expected_heavy_peak + (AA_mass / charge)
 
@@ -65,13 +77,13 @@ def scan_plot(mz_values, intensity_values, peptide_details):
 
     plot_points_and_lines(mz_values, intensity_values, expected_light_peak, expected_heavy_peak)
     set_axes_limits(mz_values, intensity_values, expected_heavy_peak)
-    y_limit_half = (plt.ylim()[1] - plt.ylim()[0]) / 1.1
+    # y_limit_half = (plt.ylim()[1] - plt.ylim()[0]) / 1.1
     draw_error_bar(expected_light_peak, expected_heavy_peak)#y_limit_half
     annotate_peaks(mz_values, intensity_values, expected_light_peak, expected_heavy_peak)
 
     plt.xlabel('m/z')
     plt.ylabel('Intensity')
-    plt.title(f'MS1 of {sequence} \n RT: {retention_time}, Charge: {charge}, Scan no: {scan_number}')
+    plt.title(f'MS1 of {sequence} Charge: {charge} \n Raw file: {raw_file} \n RT: {retention_time}, Scan no: {scan_number}')
     plt.grid(True)
     plt.legend()
     plt.show()
