@@ -4,18 +4,21 @@ Created on Fri Oct 20 16:51:01 2023
 
 @author: rkerrid
 """
-from label_check import file_io as io
-from label_check import process_peptides as peptide
-import plotting
+from silac_dia_tools.label_check import file_io as io
+from silac_dia_tools.label_check import process_peptides as peptide
+from silac_dia_tools.label_check import plotting
 import pandas as pd
 
-path = 'C:/data/silac_dia_tools_files/data/spikein data/'
 
+# work
+path = 'C:/data/silac_dia_tools_files/data/spikein data/'
+# home
+path = 'G:/My Drive/Data/data/label check proof of concept/'
 
 ##Main
 #path and file variables
-raw_file = 'Fozzie_20230426_RJK_HS_vneo1_eif4fSpikeIn.raw'
-path = "W:/RJK/label check script tests/eif4f/" 
+raw_file = '20231010_AJW_HS_px07_HEK293_SILAC_heavycheck_3.raw'
+
 
 #import MQ and thermo raw file data
 msms = io.import_file(path + "msms.txt")

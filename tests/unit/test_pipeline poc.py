@@ -21,22 +21,23 @@ test_data_spikein = 'C:/data/silac_dia_tools_files/data/spikein data/'
 test_data_no_spikein = 'G:/My Drive/Data/data/no spikein data/'
 test_data_spikein = 'G:/My Drive/Data/data/spikein data/'
 
+# test_data_spikein = 'G:/My Drive/Data/data/eIF4F optimization/'
 # # #test filter
 df_si = fdia.import_and_filter(test_data_spikein, update=True)
-df_nosi = fdia.import_and_filter(test_data_no_spikein, update=True)
+# df_nosi = fdia.import_and_filter(test_data_no_spikein, update=True)
 
 # # #test format precursors
 df_pre_si = pdia.format_silac_channels(test_data_spikein)
-df_pre_nosi = pdia.format_silac_channels(test_data_no_spikein)
+# df_pre_nosi = pdia.format_silac_channels(test_data_no_spikein)
 
 # # #extract data
-rdia.calculate_protein_level_ratios(test_data_no_spikein)
+# rdia.calculate_protein_level_ratios(test_data_no_spikein)
 rdia.calculate_protein_level_ratios(test_data_spikein)
 
 # ##calculate intensities
 # # no spike in
-idia.output_dlfq(test_data_no_spikein)
-idia.output_unnorm(test_data_no_spikein, False)
+# idia.output_dlfq(test_data_no_spikein)
+# idia.output_unnorm(test_data_no_spikein, False)
 
 # # spike in
 idia.output_href(test_data_spikein)

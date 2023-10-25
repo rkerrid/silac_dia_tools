@@ -7,6 +7,7 @@ Created on Fri Oct 13 08:41:02 2023
 import pandas as pd
 pd.set_option('display.max_columns', None)
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 import numpy as np
 
 from icecream import ic
@@ -44,8 +45,8 @@ def shift_ratios(df, mask):
 
 def plot_data(ax, df, mask, color, label, x_col, y_col, plot_median=False):
     ax.scatter(df.loc[mask, x_col], df.loc[mask, y_col], color=color, alpha=0.5)
-    ax.set_xlabel('log10(Intensity)')
-    ax.set_ylabel('log10(S4:S5)')
+    ax.set_xlabel('log10(Intensity)', fontsize=16)
+    ax.set_ylabel('log10(S4:S5)', fontsize=16)
     ax.grid(True)
     
     if plot_median:
@@ -77,13 +78,13 @@ def plot_ratios(df, expected_human, expected_ecoli, title):
    
     df_S5 = add_href_intensity(df_S5)
     
-    fig, ax = plt.subplots(1, 2, figsize=(20, 6), sharey=True)
-    fig.suptitle(title, fontsize=16)
+    fig, ax = plt.subplots(1, 2, figsize=(20, 8), sharey=True)
+    fig.suptitle(title, fontsize=22, fontweight='bold')
     
-    ax[0].set_title('Ecoli Data')
-    plot_data(ax[0], df_S5, mask_ecoli, 'red', 'ECOLI', 'href', 'log_shifted_ratio', plot_median=True)
+    ax[0].set_title('Ecoli Subset', fontsize=16)
+    plot_data(ax[0], df_S5, mask_ecoli, 'red', 'Ecoli', 'href', 'log_shifted_ratio', plot_median=True)
     
-    ax[1].set_title('Human Data')
+    ax[1].set_title('Human Subset', fontsize=16)
     plot_data(ax[1], df_S5, mask_human, 'blue', 'Human', 'href', 'log_shifted_ratio')
     
     ax[0].set_ylim(-1.5, 1)
