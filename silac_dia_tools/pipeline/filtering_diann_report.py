@@ -18,18 +18,25 @@ import json
 import operator
 from silac_dia_tools.pipeline.report import filtering_report
 from pkg_resources import resource_filename
-
+from icecream import ic
 
 # Defining the relative path to configs directory 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', 'configs')
 # json_path = 'filtering_parameters.json'
 
-def import_and_filter(path, update=False):
+def import_and_filter(path, meta=None, update=False):
     # Define chunk size (number of rows to load at a time)
     chunk_size = 100000
     chunks = []
     contams = []
     filtered_set = []
+    meta_data = None
+    
+    # check to see if metadata is in directory if meta is assigned a filename
+    relable_with_meta = confirm_metadata(meta, path)
+    if relable_with_meta:
+        meta_data = pd.read_csv(f"{path}{meta}")
+    ic(meta_data)
     
     # Load filtering parameters from JSON
     print('Loading filtering parameters')
@@ -42,16 +49,22 @@ def import_and_filter(path, update=False):
     count = 1
     with open(f"{path}report.tsv", 'r', encoding='utf-8') as file:
         for chunk in pd.read_table(file,sep="\t", chunksize=chunk_size):
-          
+            # if applicable, relable chunk Run colum with metadata
+            if relable_with_meta:
+                chunk = relable_run(chunk, meta_data)
+            
             # Apply filtering to each chunk
             chunk, contam = remove_contaminants(chunk)
             chunk, filtered_out = apply_filters(chunk, params)
+            
+            # Drop unnecesary columns
             chunk = drop_cols(chunk) 
             
             # Append chunks from respective filtering steps
             filtered_set.append(filtered_out)
             contams.append(contam)
             chunks.append(chunk)
+            
             # Update progress (optional)
             if update:
                 print('chunk ', count,' processed')
@@ -71,6 +84,37 @@ def import_and_filter(path, update=False):
     print('Filtering complete')
     return df, contams, filtered_set
 
+
+def confirm_metadata(meta_file, path):
+    if meta_file is None:
+        print("No metadata added, filering will continue without relabeling")
+        return False
+    elif isinstance(meta_file, str):
+        print("Metadata added, looking for the following file:", meta_file)
+        meta_exists = check_directory(meta_file, path)
+        if meta_exists:
+            return True
+        else:
+            print(f"Cannot find {meta_file} in {path}, check file name and location") 
+            print("Filtering will continue without relabeling")
+    else:
+        print("File name is not a string, filering will continue without relabeling")
+        return False
+        
+def check_directory(meta_file, path):
+    file_list = os.listdir(path)
+    # Iterate through the list of filenames and check for a match
+    found = False
+    for filename in file_list:
+        if filename == meta_file:
+            found = True
+            print(f"CSV file '{meta_file}' found in {path}")
+            return True
+    if not found:
+        print(f"CSV file '{meta_file}' not found in the directory.")
+        return False
+    
+    
 #create preprocessing directory for new files 
 def create_preprocessing_directory(path):
     # Combine the paths
@@ -132,3 +176,12 @@ def  drop_cols(chunk):
     chunk = chunk[cols_to_keep]
     return chunk
 
+def relable_run(chunk, meta_data):
+    run_to_sample = dict(zip(meta_data['Run'], meta_data['Sample']))
+
+    # Apply the mapping to df2['Run'] and raise an error if a 'Run' value doesn't exist in df1
+    chunk['Run'] = chunk['Run'].map(run_to_sample)
+    if chunk['Run'].isna().any():
+        raise ValueError("Some Run values in the report.tsv are not found in the metadata, please ensure metadata is correct.")
+        
+    return chunk
