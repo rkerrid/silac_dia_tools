@@ -74,3 +74,6 @@ The label check module requires a thermo .raw file for the heavy spike-in aquire
 0.2.0 for testing
 
 Notes: 0.2.0 is a stable realease including all core features for the pipeline and label check. The software should be useable in house and ready for testing (Alan)
+
+Updates:
+Option to relable Run if .csv file containing Run and Sample columns corrosponding to the Run values in the .tsv file exists in the same directory as the .tsv
