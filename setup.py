@@ -9,6 +9,7 @@ setup(
         'pandas>=1.0.0',  # specify the minimum version you require
         'matplotlib>=3.0.0',
         'numpy>=1.18.0',
+        'jupyterlab>=3.0.0',
         'spyder',
         'icecream',
         'seaborn',
