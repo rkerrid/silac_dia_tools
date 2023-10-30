@@ -9,6 +9,8 @@ from silac_dia_tools.pipeline.pipeliner import Pipeline
 
 if __name__ == "__main__":
     pipeline = Pipeline('G:/My Drive/Data/data/BM data/', meta="your_meta")
-    # pipeline.test()
-    print(pipeline)
+   
+    
     pipeline.preprocess()
+    pipeline.format_channels()
+    pipeline.roll_up_to_protein_level()

@@ -65,12 +65,6 @@ class Preprocessor:
             return False
     
     def import_and_filter(self):
-        print(f"Path: {self.path}")
-        print(f"Meta: {self.meta}")
-        print(f"Config Directory: {self.config_dir}")
-        print(f"Chunk Size: {self.chunk_size}")
-        print(f"Chunk Size: {self.params}")
-        
         # Iterate through the file in chunks and apply preprocessing functions
         print('Beggining filtering')
         count = 1
@@ -86,7 +80,7 @@ class Preprocessor:
                 
                 # Apply filtering to each chunk
                 chunk, contam = self.remove_contaminants(chunk)
-                chunk, filtered_out = self.apply_filters(chunk, self.params)
+                chunk, filtered_out = self.apply_filters(chunk)
                 
                 # Drop unnecesary columns
                 chunk = self.drop_cols(chunk) 
@@ -109,74 +103,88 @@ class Preprocessor:
         # Pass filtering information to reports
         print('Generating filtering report')
         # filtering_report.filtering_qc(df, contams, filtered_set, path, params)
-        self.create_preprocessing_directory(self.path)
-        print('Saving filtered_report.tsv')
-        df.to_csv(f'{self.path}preprocessing/report_filtered.tsv',sep='\t')
+        self.create_preprocessing_directory()
+        # print('Saving filtered_report.tsv')
+        # df.to_csv(f'{self.path}preprocessing/report_filtered.tsv',sep='\t')
         print('Filtering complete')
         return df, contams, filtered_set
 
 
-        def create_preprocessing_directory(self):
-           # Combine the paths
-           new_folder_path = os.path.join(self.path, 'preprocessing')
-           
-           # Create the new folder
-           if not os.path.exists(new_folder_path):
-               os.makedirs(new_folder_path)
-               print(f"Folder preprocessing created successfully at {new_folder_path}")
-           else:
-               print(f"Folder preprocessing already exists at {new_folder_path}")
-        
-        #Filtering
-        def remove_contaminants(self, chunk):
-            # Create a contaminants mask based on the cont_ string and make sure all values are boolean
-            contams_mask = chunk['Protein.Group'].str.contains('cont_', case=False, na=False)
-            if not all(isinstance(x, bool) for x in contams_mask):
-                print("contams_mask contains non-boolean values:", contams_mask[~contams_mask.isin([True, False])])
+    def create_preprocessing_directory(self):
+       # Combine the paths
+       new_folder_path = os.path.join(self.path, 'preprocessing')
+       
+       # Create the new folder
+       if not os.path.exists(new_folder_path):
+           os.makedirs(new_folder_path)
+           print(f"Folder preprocessing created successfully at {new_folder_path}")
+       else:
+           print(f"Folder preprocessing already exists at {new_folder_path}")
+    
+    #Filtering
+    def remove_contaminants(self, chunk): # is self needed?
+        # Create a contaminants mask based on the cont_ string and make sure all values are boolean
+        contams_mask = chunk['Protein.Group'].str.contains('cont_', case=False, na=False)
+        if not all(isinstance(x, bool) for x in contams_mask):
+            print("contams_mask contains non-boolean values:", contams_mask[~contams_mask.isin([True, False])])
 
-            contams_df = chunk[contams_mask]  # Dataframe with only contaminants
-            cleaned_chunk = chunk[~contams_mask]  # Dataframe without contaminants
-            return cleaned_chunk, contams_df
+        contams_df = chunk[contams_mask]  # Dataframe with only contaminants
+        cleaned_chunk = chunk[~contams_mask]  # Dataframe without contaminants
+        return cleaned_chunk, contams_df
+        
+    def apply_filters(self, chunk):
+        # Initialize operator dict
+        ops = {
+            "==": operator.eq,
+            "<": operator.lt,
+            "<=": operator.le,
+            ">": operator.gt,
+            ">=": operator.ge
+        }
+
+         # Create a boolean Series with all True values and explicitly set its index
+        filtering_condition = pd.Series([True] * len(chunk), index=chunk.index)
+        
+        # Iterating over each filter condition in params['apply_filters']
+        for column, condition in self.params['apply_filters'].items():
+            op = ops[condition['op']]
+            value = condition['value']
             
-        def apply_filters(self, chunk):
-            # Initialize operator dict
-            ops = {
-                "==": operator.eq,
-                "<": operator.lt,
-                "<=": operator.le,
-                ">": operator.gt,
-                ">=": operator.ge
-            }
-            # Assign filtering parameter values and opperators to filtering conditions
-            filtering_condition = (
-                ops[params['apply_filters']['Global.PG.Q.Value']["op"]](chunk['Global.PG.Q.Value'], params['apply_filters']['Global.PG.Q.Value']["value"]) &
-                ops[params['apply_filters']['Global.Q.Value']["op"]](chunk['Global.Q.Value'], params['apply_filters']['Global.Q.Value']["value"]) &
-                ops[params['apply_filters']['Precursor.Charge']["op"]](chunk['Precursor.Charge'], params['apply_filters']['Precursor.Charge']["value"]) &
-                ops[params['apply_filters']['Channel.Q.Value']["op"]](chunk['Channel.Q.Value'], params['apply_filters']['Channel.Q.Value']["value"])
-            )
-            # Filter chunk and return both filtered and filtered out dfs
-            chunk_filtered = chunk[filtering_condition]
-            chunk_filtered_out = chunk[~filtering_condition]
+            # Updating filtering_condition by applying each condition
+            filtering_condition &= op(chunk[column], value)
 
-            return chunk_filtered, chunk_filtered_out
+        # Filter chunk and return both filtered and filtered out dfs
+        chunk_filtered = chunk[filtering_condition]
+        chunk_filtered_out = chunk[~filtering_condition]
 
-        def  drop_cols(chunk):
-            chunk['Genes'] = chunk['Genes'].fillna('')
-            chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
-            cols_to_keep = [ 'Run',
-                              'Protein.Group',
-                              'Stripped.Sequence',
-                              'Precursor.Id', 
-                              'Precursor.Charge',
-                              'Lib.PG.Q.Value',
-                              'Precursor.Quantity',
-                              'Precursor.Translated',
-                              'Ms1.Translated'
-                              ]
-            chunk = chunk[cols_to_keep]
-            return chunk
-        
-        
+        return chunk_filtered, chunk_filtered_out
+
+    def  drop_cols(self, chunk): # is self needed?
+        chunk['Genes'] = chunk['Genes'].fillna('')
+        chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
+        cols_to_keep = [ 'Run',
+                          'Protein.Group',
+                          'Stripped.Sequence',
+                          'Precursor.Id', 
+                          'Precursor.Charge',
+                          'Lib.PG.Q.Value',
+                          'Precursor.Quantity',
+                          'Precursor.Translated',
+                          'Ms1.Translated'
+                          ]
+        chunk = chunk[cols_to_keep]
+        return chunk
+    
+    def relable_run(self, chunk):
+        run_to_sample = dict(zip(self.meta['Run'], self.meta['Sample']))
+
+        # Apply the mapping to df2['Run'] and raise an error if a 'Run' value doesn't exist in df1
+        chunk['Run'] = chunk['Run'].map(run_to_sample)
+        if chunk['Run'].isna().any():
+            raise ValueError("Some Run values in the report.tsv are not found in the metadata, please ensure metadata is correct.")
+            
+        return chunk
+    
 # import pandas as pd
 # import os
 # import json
@@ -342,12 +350,4 @@ class Preprocessor:
 #     chunk = chunk[cols_to_keep]
 #     return chunk
 
-# def relable_run(chunk, meta_data):
-#     run_to_sample = dict(zip(meta_data['Run'], meta_data['Sample']))
 
-#     # Apply the mapping to df2['Run'] and raise an error if a 'Run' value doesn't exist in df1
-#     chunk['Run'] = chunk['Run'].map(run_to_sample)
-#     if chunk['Run'].isna().any():
-#         raise ValueError("Some Run values in the report.tsv are not found in the metadata, please ensure metadata is correct.")
-        
-#     return chunk
