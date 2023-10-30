@@ -25,6 +25,9 @@ def create_report(df, path):
         plt.axis('off')
         plt.text(0.5, 0.98, "Protein Ratios QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
         
+        pdf.savefig()  # Saves the current figure into the PDF
+        plt.close()
+        
         # Creating the barplot
         plt.figure(figsize=(10, 7))
         barplot = sns.barplot(x='Run', y='Counts', data=counts_df, orient='v')

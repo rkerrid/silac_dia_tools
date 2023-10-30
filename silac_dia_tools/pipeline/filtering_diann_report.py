@@ -19,6 +19,7 @@ import operator
 from silac_dia_tools.pipeline.report import filtering_report
 from pkg_resources import resource_filename
 from icecream import ic
+ic.disable()
 
 # Defining the relative path to configs directory 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', 'configs')
@@ -87,7 +88,7 @@ def import_and_filter(path, meta=None, update=False):
 
 def confirm_metadata(meta_file, path):
     if meta_file is None:
-        print("No metadata added, filering will continue without relabeling")
+        print("No metadata added, filtering will continue without relabeling")
         return False
     elif isinstance(meta_file, str):
         print("Metadata added, looking for the following file:", meta_file)

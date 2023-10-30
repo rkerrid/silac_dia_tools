@@ -18,7 +18,6 @@ def silac_precursor_qc(df, path):
     create_reports_directory(path)
     output_dir = path + '/reports'
     pdf_path = os.path.join(output_dir, 'silac_precursors_report.pdf')
-    print(os.path.exists(pdf_path))
     df_grouped = df.groupby('Run')
     
     with PdfPages(pdf_path) as pdf:

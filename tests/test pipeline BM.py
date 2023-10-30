@@ -106,12 +106,12 @@ def save_plot_to_pdf(df,  expected_human, expected_ecoli, title, filename):
 
  
 # Process diann output files: filtering, formatting silac precursors, ratios, intensities (directLFQ) with 'H pulse'
-f_df, contams_df, fout_df = fdia.import_and_filter(test_data_bm, update=True)
-pre_df = pdia.format_silac_channels(test_data_bm)
-ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
-idia.output_dlfq(test_data_bm, pulse_channel='H')
-idia.output_unnorm(test_data_bm, True, pulse_channel='H')
-idia.output_href(test_data_bm)
+# f_df, contams_df, fout_df = fdia.import_and_filter(test_data_bm, update=True)
+# pre_df = pdia.format_silac_channels(test_data_bm)
+# ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
+# idia.output_dlfq(test_data_bm, pulse_channel='H')
+# idia.output_unnorm(test_data_bm, True, pulse_channel='H')
+# idia.output_href(test_data_bm)
 
 # # import dlfq normalized proteomes and compare s5:s4 ecoli and human ratios rep3
 df_light_lfq = pd.read_csv(f'{test_data_bm}protein intensities/light_dlfq.csv')
