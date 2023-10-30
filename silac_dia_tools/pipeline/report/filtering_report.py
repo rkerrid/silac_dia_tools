@@ -20,7 +20,7 @@ def filtering_qc(df, contams, filtered_out, path, params):
     counts_filtered_out = filtered_out['Run'].value_counts()
 
     # Construct the description string
-    params_str =     params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
     description = f"Parameters used:\n{params_str}"
     
     #Group by run for analysis of each
@@ -39,14 +39,17 @@ def filtering_qc(df, contams, filtered_out, path, params):
         plt.axis('off')
         plt.text(0.5, 0.98, "Filtering QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
         plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
-                
+        
+        pdf.savefig()  # Saves the current figure into the PDF
+        plt.close()
+        
         # Display table of counts
         table_data = [["Run", "DF Count", "Contaminants Count", "Filtered Out Count"]]
         for run in counts_df.keys():
             table_data.append([run, counts_df.get(run, 0), counts_contams.get(run, 0), counts_filtered_out.get(run, 0)])
         
         plt.table(cellText=table_data, cellLoc = 'center', loc='center', colWidths=[0.2,0.2,0.3,0.3])
-                
+        plt.axis('off')
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()
 

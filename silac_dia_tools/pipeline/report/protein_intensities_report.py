@@ -1,62 +1,58 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct 19 15:08:12 2023
+Created on Thu Oct 19 13:33:49 2023
 
 @author: rkerrid
-
-        placeholder untill ready for protein intensities QC
 """
-
-import seaborn as sns
-import os
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import warnings
+import seaborn as sns
+import os
+import json 
 
 
-def create_report(df, path):
+def create_intensities_report(df, path):
+
+    # Construct the description string
+    # Load filtering parameters from JSON
+    CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'configs')
+    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
+    with open(json_path, 'r') as f:
+        params = json.load(f)
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    description = f"Parameters used:\n{params_str}"
     
     # Set up the PDF
     create_reports_directory(path)
     output_dir = path + '/reports'
-    pdf_path = os.path.join(output_dir, 'filtering_report.pdf')
+    pdf_path = os.path.join(output_dir, 'protein_intensities_report.pdf')
 
     with PdfPages(pdf_path) as pdf:
         # Title and introduction
-        plt.figure(figsize=(8, 11))
+        plt.figure(figsize=(11, 8))
         plt.axis('off')
-        plt.text(0.5, 0.98, "Filtering QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
-       
-        df_grouped = df.groupby("Run")
-        # Get the list of unique runs
-        runs = df_grouped.groups.keys()
-
-        # For each run, plot the histograms and save to PDF
-        # Suppress runtime warnings
-        warnings.filterwarnings("ignore", category=RuntimeWarning) 
-        for run in runs:
-            plot_histograms_for_run(run, [df_grouped], ['df', 'contams', 'filtered_out'])
-            # )
-            pdf.savefig()  # Saves the current figure into the PDF
-            plt.close()
-
-
-def plot_histograms_for_run(run, dfs, labels, column='Precursor.Quantity'):
-    """Plot histograms for a given run from multiple dataframes."""
-    colors = sns.color_palette("husl", len(dfs))  # Get a color palette
-
-    for df, label, color in zip(dfs, labels, colors):
-        # Calculate log2 values
-        data = np.log2(df.get_group(run)[column].dropna())
-        # Filter out -inf and inf values
-        data = data[np.isfinite(data)]
-        plt.hist(data, alpha=0.5, label=label, bins=300, color=color)  # Removed edgecolor and added color parameter
-
-    plt.title(f'Histogram for {run}')
-    plt.xlabel(f"log2({column})")
-    plt.ylabel('Frequency')
-    plt.legend()
+        plt.text(0.5, 0.98, "Protein Intensities QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
+        plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
+        
+        pdf.savefig()  # Saves the current figure into the PDF
+        plt.close()
+        
+        # # Creating the barplot
+        # plt.figure(figsize=(10, 7))
+        # barplot = sns.barplot(x='Run', y='Counts', data=counts_df, orient='v')
+        # plt.title('Counts per Run')
+        # plt.xlabel('Run')
+        # plt.ylabel('Counts')
+        
+        # # Rotating x-axis labels
+        # barplot.set_xticklabels(barplot.get_xticklabels(), rotation=45, horizontalalignment='right')
+        
+        # # Adding counts on the bars
+        # for index, row in counts_df.iterrows():
+        #     barplot.text(row.name, row.Counts, row.Counts, color='black', ha="center")
+        
+        # pdf.savefig()  # Saves the current figure into the PDF
+        # plt.close()
 
 #create preprocessing directory for new files 
 def create_reports_directory(path):

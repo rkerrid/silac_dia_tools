@@ -8,9 +8,12 @@ Step 4: Calculate protein level intensities
 
 
 """
-import pandas as pd
+
 from silac_dia_tools.pipeline.utils import dlfq_functions as dlfq
+from silac_dia_tools.pipeline.report import protein_intensities_report
 import os
+import pandas as pd
+import numpy as np
 
 
 def create_protein_intensity_directory(path):
@@ -58,12 +61,19 @@ def output_href(path):
     total_hnorm = total_hnorm.pivot(index='Protein.Group', columns='Run', values='Total intensity')
     reference = reference.pivot(index='Protein.Group', columns='Run', values='H intensity')
     
+    #remove empty rows
+    light_hnorm = remove_empyt_rows(light_hnorm)
+    nsp_hnorm = remove_empyt_rows(nsp_hnorm)
+    total_hnorm = remove_empyt_rows(total_hnorm)
+    
     # nsp to light ratio and light to H ratio
     
     light_hnorm.to_csv(path + 'protein intensities/light_href.csv', sep=',')  
     nsp_hnorm.to_csv(path + 'protein intensities/nsp_href.csv', sep=',')
     total_hnorm.to_csv(path + 'protein intensities/total_href.csv', sep=',')
     reference.to_csv(path + 'protein intensities/reference_href.csv', sep=',')
+    
+    protein_intensities_report.create_intensities_report(total_hnorm, path)
     
     print('Saved H reference normalized protein intensities')
     return total_hnorm, nsp_hnorm, merged_df_h
@@ -87,6 +97,11 @@ def output_unnorm(path, contains_reference, pulse_channel='M'):
     light_unnorm = light_unnorm.pivot(index='Protein.Group', columns='Run', values='L intensity')
     nsp_unnorm = nsp_unnorm.pivot(index='Protein.Group', columns='Run', values='NSP intensity')
     total_unnorm = total_unnorm.pivot(index='Protein.Group', columns='Run', values='Total intensity')
+    
+    #remove empty rows
+    light_unnorm = remove_empyt_rows(light_unnorm)
+    nsp_unnorm = remove_empyt_rows(nsp_unnorm)
+    total_unnorm = remove_empyt_rows(total_unnorm)
     
     # nsp to light ratio and light to H ratio
     
@@ -139,6 +154,11 @@ def output_dlfq(path, pulse_channel='M'):
     nsp_lfq = nsp_lfq.pivot(index='Protein.Group', columns='Run', values='NSP intensity')
     light_lfq = light_lfq.pivot(index='Protein.Group', columns='Run', values='L intensity')
     
+    #remove empty rows
+    total_lfq = remove_empyt_rows(total_lfq)
+    nsp_lfq = remove_empyt_rows(nsp_lfq)
+    light_lfq = remove_empyt_rows(light_lfq)
+    
     # nsp to light ratio and light to H ratio
     
     # Save tables to CSV
@@ -146,8 +166,13 @@ def output_dlfq(path, pulse_channel='M'):
     nsp_lfq.to_csv(path+'protein intensities/nsp_dlfq.csv', sep=',')
     light_lfq.to_csv(path+'protein intensities/light_dlfq.csv', sep=',')
     print('Saved directLFQ normalized protein intensities')
-
+    
+    protein_intensities_report.create_intensities_report(total_lfq, path)
     return total_lfq, nsp_lfq, light_lfq
 
 
-
+def remove_empyt_rows(df):
+    df.replace([np.nan, np.inf, -np.inf], 0, inplace=True) # replace infinity and nan values with 0
+    cols = df.columns.values.tolist()[1:] # get a list of all sample columns
+    df = df[df[cols].sum(axis=1) != 0] # remove all rows containing 0 values
+    return df

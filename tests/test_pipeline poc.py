@@ -23,8 +23,8 @@ test_data_spikein = 'G:/My Drive/Data/data/spikein data/'
 
 # test_data_spikein = 'G:/My Drive/Data/data/eIF4F optimization/'
 # # #test filter
-df_si = fdia.import_and_filter(test_data_spikein, meta="meta.csv", update=True)
-df_nosi = fdia.import_and_filter(test_data_no_spikein, meta="meta.csv", update=True)
+df_si = fdia.import_and_filter(test_data_spikein,  update=True) #meta="meta.csv",
+df_nosi = fdia.import_and_filter(test_data_no_spikein,  update=True) # meta="meta.csv",
 
 # # #test format precursors
 df_pre_si = pdia.format_silac_channels(test_data_spikein)

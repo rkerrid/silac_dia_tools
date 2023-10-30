@@ -9,6 +9,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import json
 
 
 def silac_precursor_qc(df, path):
@@ -18,6 +19,16 @@ def silac_precursor_qc(df, path):
     create_reports_directory(path)
     output_dir = path + '/reports'
     pdf_path = os.path.join(output_dir, 'silac_precursors_report.pdf')
+    
+    # Construct the description string
+    # Load filtering parameters from JSON
+    CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'configs')
+    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
+    with open(json_path, 'r') as f:
+        params = json.load(f)
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    description = f"Parameters used:\n{params_str}"
+    
     df_grouped = df.groupby('Run')
     
     with PdfPages(pdf_path) as pdf:
@@ -25,15 +36,18 @@ def silac_precursor_qc(df, path):
         plt.figure(figsize=(8, 11))
         plt.axis('off')
         plt.text(0.5, 0.98, "Silac Precursors QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
-        plt.text(0.5, 0.85, "test", ha='center', va='center', wrap=True)
-                
+        plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
+        
+        pdf.savefig()  # Saves the current figure into the PDF
+        plt.close()
+        
         # Display table of counts
         table_data = [["Run", "DF Count"]]
         for run in counts_df.keys():
             table_data.append([run, counts_df.get(run, 0)])
         
         plt.table(cellText=table_data, cellLoc = 'center', loc='center', colWidths=[0.2,0.2])
-                
+        plt.axis('off')
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()
 

@@ -41,7 +41,7 @@ def import_and_filter(path, meta=None, update=False):
     
     # Load filtering parameters from JSON
     print('Loading filtering parameters')
-    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
+    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters_strict.json')
     with open(json_path, 'r') as f:
         params = json.load(f)
         
@@ -139,6 +139,28 @@ def remove_contaminants(chunk):
     cleaned_chunk = chunk[~contams_mask]  # Dataframe without contaminants
     return cleaned_chunk, contams_df
     
+# def apply_filters(chunk, params):
+#     # Initialize operator dict
+#     ops = {
+#         "==": operator.eq,
+#         "<": operator.lt,
+#         "<=": operator.le,
+#         ">": operator.gt,
+#         ">=": operator.ge
+#     }
+#     # Assign filtering parameter values and opperators to filtering conditions
+#     filtering_condition = (
+#         ops[params['apply_filters']['Global.PG.Q.Value']["op"]](chunk['Global.PG.Q.Value'], params['apply_filters']['Global.PG.Q.Value']["value"]) &
+#         ops[params['apply_filters']['Global.Q.Value']["op"]](chunk['Global.Q.Value'], params['apply_filters']['Global.Q.Value']["value"]) &
+#         ops[params['apply_filters']['Precursor.Charge']["op"]](chunk['Precursor.Charge'], params['apply_filters']['Precursor.Charge']["value"]) &
+#         ops[params['apply_filters']['Channel.Q.Value']["op"]](chunk['Channel.Q.Value'], params['apply_filters']['Channel.Q.Value']["value"])
+#     )
+#     # Filter chunk and return both filtered and filtered out dfs
+#     chunk_filtered = chunk[filtering_condition]
+#     chunk_filtered_out = chunk[~filtering_condition]
+
+#     return chunk_filtered, chunk_filtered_out
+
 def apply_filters(chunk, params):
     # Initialize operator dict
     ops = {
@@ -148,18 +170,25 @@ def apply_filters(chunk, params):
         ">": operator.gt,
         ">=": operator.ge
     }
-    # Assign filtering parameter values and opperators to filtering conditions
-    filtering_condition = (
-        ops[params['apply_filters']['Global.PG.Q.Value']["op"]](chunk['Global.PG.Q.Value'], params['apply_filters']['Global.PG.Q.Value']["value"]) &
-        ops[params['apply_filters']['Global.Q.Value']["op"]](chunk['Global.Q.Value'], params['apply_filters']['Global.Q.Value']["value"]) &
-        ops[params['apply_filters']['Precursor.Charge']["op"]](chunk['Precursor.Charge'], params['apply_filters']['Precursor.Charge']["value"]) &
-        ops[params['apply_filters']['Channel.Q.Value']["op"]](chunk['Channel.Q.Value'], params['apply_filters']['Channel.Q.Value']["value"])
-    )
+
+     # Create a boolean Series with all True values and explicitly set its index
+    filtering_condition = pd.Series([True] * len(chunk), index=chunk.index)
+    
+    # Iterating over each filter condition in params['apply_filters']
+    for column, condition in params['apply_filters'].items():
+        op = ops[condition['op']]
+        value = condition['value']
+        
+        # Updating filtering_condition by applying each condition
+        filtering_condition &= op(chunk[column], value)
+
     # Filter chunk and return both filtered and filtered out dfs
     chunk_filtered = chunk[filtering_condition]
     chunk_filtered_out = chunk[~filtering_condition]
 
     return chunk_filtered, chunk_filtered_out
+
+
 
 def  drop_cols(chunk):
     chunk['Genes'] = chunk['Genes'].fillna('')

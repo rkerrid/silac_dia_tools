@@ -69,7 +69,7 @@ def calculate_protein_level_ratios(path):
     protein_ratios = pd.DataFrame(protein_data)
     print('Saving protein_ratios.csv')
     protein_ratios.to_csv(path+'preprocessing/protein_ratios.csv', sep=',')
-    protein_group_report.create_report(protein_ratios, path)
+    protein_group_report.create_protein_groups_report(df, path)
     print('Done!')
     return protein_ratios
 
