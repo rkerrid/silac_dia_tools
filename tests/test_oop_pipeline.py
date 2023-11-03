@@ -14,3 +14,6 @@ if __name__ == "__main__":
     pipeline.preprocess()
     pipeline.format_channels()
     pipeline.roll_up_to_protein_level()
+    pipeline.output_unnormormalized()
+    pipeline.output_dlfq(pulse_channel='H')
+    pipeline.output_href()
