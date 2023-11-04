@@ -41,7 +41,7 @@ def import_and_filter(path, meta=None, update=False):
     
     # Load filtering parameters from JSON
     print('Loading filtering parameters')
-    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters_strict.json')
+    json_path = os.path.join(CONFIG_DIR, 'filtering_parameters.json')
     with open(json_path, 'r') as f:
         params = json.load(f)
         
