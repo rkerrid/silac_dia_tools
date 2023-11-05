@@ -14,6 +14,9 @@ from silac_dia_tools.pipeline.report import protein_intensities_report
 import os
 import pandas as pd
 import numpy as np
+import icecream
+from icecream import ic
+ic.enable()
 
 
 def create_protein_intensity_directory(path):
@@ -170,7 +173,54 @@ def output_dlfq(path, pulse_channel='M'):
     protein_intensities_report.create_intensities_report(total_lfq, path)
     return total_lfq, nsp_lfq, light_lfq
 
+def href_on_dlfq( path):
+    ratios = pd.read_csv(path + 'preprocessing/protein_ratios.csv')
+    lfq = pd.read_csv(path+'preprocessing/dlfq_protein_intensities.tsv', sep='\t')
+    lfq = lfq.rename(columns={'protein': 'Protein.Group'})# Check for non-1-dimensional columns
+    # Drop the duplicated 'Protein.Group' column if exists
+    if lfq.columns.duplicated().any():
+        lfq = lfq.loc[:, ~lfq.columns.duplicated()]
+    for col in lfq.columns:
+        ic(col)
+        ic(lfq[col])
+        if lfq[col].ndim != 1:
+            
+            print(f"Column {col} is not 1-dimensional.")
+    
+    # Attempt to melt the DataFrame again
+    try:
+        melted_df = lfq.melt(id_vars=['Protein.Group'], var_name='Run', value_name='Intensity')
+        print(melted_df.head())
+    except ValueError as e:
+        print(f"Error: {e}")
+    # Generate href df
+    h_ref = ratios.groupby('Protein.Group')['H intensity'].median()
+    h_ref = h_ref.reset_index().rename(columns={'H intensity': 'h_ref'})
+    h_ref = h_ref.reset_index().rename(columns={'protein': 'Protein.Group'})
+    h_ref = h_ref.iloc[:,1:]
+    # ic(lfq)
+    # ic(h_ref)
+    # melt lfq 
+    lfq_df = lfq.melt(id_vars=['Protein.Group'], var_name = 'Run', value_name = 'Intensity')
+    # merge href onto ratios
+    merged_df_h = lfq_df.merge(h_ref, on='Protein.Group', how='inner')
+    ic(merged_df_h)
 
+    
+   
+    ic(merged_df_h['Intensity'])
+    ic(merged_df_h['h_ref'])
+    ic(merged_df_h)
+    # merged_df_h['Intensity'] = merged_df_h['Intensity'] *  merged_df_h['h_ref']
+    light_lfq_href = merged_df_h.pivot(index='Protein.Group', columns='Run', values='Intensity')
+    light_lfq_href = remove_empyt_rows(light_lfq_href)
+    ic(light_lfq_href)
+    light_lfq_href.to_csv(path+'protein intensities/light_dlfq.csv', sep=',')
+    return light_lfq_href
+    
+    
+    
+    
 def remove_empyt_rows(df):
     df.replace([np.nan, np.inf, -np.inf], 0, inplace=True) # replace infinity and nan values with 0
     cols = df.columns.values.tolist()[1:] # get a list of all sample columns

@@ -18,7 +18,7 @@ def format_silac_channels(path):
     df = import_filtered(new_path)
     df = parse_data_for_channel_info(df) 
     df = combine_modified_precursors(df)
-    df = stack_intensities(df)
+    df = unstacked_intensities(df)
     df = drop_nan(df)
     print('Generating report...')
     precursor_report.silac_precursor_qc(df, path)
@@ -97,6 +97,18 @@ def stack_intensities(df):
         if col not in df.columns:
             df[col] = 0
     df['Precursor.Quantity'] = df['H intensity'] + df['M intensity'] + df['L intensity']
+    df['L to stack ratio'] = df['L intensity']/df['Precursor.Quantity']
+    df['M to stack ratio'] = df['M intensity']/df['Precursor.Quantity']
+    df['H to stack ratio'] = df['H intensity']/df['Precursor.Quantity']
+    return df
+
+#Stacking intensities and calculating intensity to stack ratio
+def unstacked_intensities(df):
+    columns_to_check = ['H intensity', 'M intensity', 'L intensity']
+    for col in columns_to_check:
+        if col not in df.columns:
+            df[col] = 0
+    df['Precursor.Quantity'] = df['M intensity'] + df['L intensity']
     df['L to stack ratio'] = df['L intensity']/df['Precursor.Quantity']
     df['M to stack ratio'] = df['M intensity']/df['Precursor.Quantity']
     df['H to stack ratio'] = df['H intensity']/df['Precursor.Quantity']
