@@ -64,7 +64,7 @@ class IntensityCalculator:
         
 
         print('Saved H reference normalized protein intensities')
-        return total_hnorm, nsp_hnorm, merged_df_h
+        return total_hnorm, nsp_hnorm, light_hnorm
 
                 
     def output_unnorm(self, contains_reference=True):

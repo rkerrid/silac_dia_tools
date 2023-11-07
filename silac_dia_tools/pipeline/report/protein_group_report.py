@@ -9,7 +9,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 import os
 
-def create_report(df, path):
+def create_report(df, path, params):
+    # Construct the description string
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    description = f"Parameters used:\n{params_str}"
+    
     # Count rows for each dataframe
     counts_df = df['Run'].value_counts().reset_index()
     counts_df.columns = ['Run', 'Counts']  # Naming the columns
@@ -24,6 +28,7 @@ def create_report(df, path):
         plt.figure(figsize=(11, 8))
         plt.axis('off')
         plt.text(0.5, 0.98, "Protein Ratios QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
+        plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
         
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()

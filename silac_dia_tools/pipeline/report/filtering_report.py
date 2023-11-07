@@ -13,14 +13,14 @@ from matplotlib.backends.backend_pdf import PdfPages
 import warnings
 
 
-def filtering_qc(df, contams, filtered_out, path, params):
+def create_report(df, contams, filtered_out, path, params):
     # Count rows for each dataframe
     counts_df = df['Run'].value_counts()
     counts_contams = contams['Run'].value_counts()
     counts_filtered_out = filtered_out['Run'].value_counts()
 
     # Construct the description string
-    params_str =     params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
     description = f"Parameters used:\n{params_str}"
     
     #Group by run for analysis of each

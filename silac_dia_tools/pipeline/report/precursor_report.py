@@ -11,7 +11,11 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-def silac_precursor_qc(df, path):
+def create_report(df, path, params):
+    # Construct the description string
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    description = f"Parameters used:\n{params_str}"
+    
     counts_df = df['Run'].value_counts()
     
     # Set up the PDF
@@ -20,12 +24,14 @@ def silac_precursor_qc(df, path):
     pdf_path = os.path.join(output_dir, 'silac_precursors_report.pdf')
     df_grouped = df.groupby('Run')
     
+    
+    
     with PdfPages(pdf_path) as pdf:
         # Title and introduction
         plt.figure(figsize=(8, 11))
         plt.axis('off')
         plt.text(0.5, 0.98, "Silac Precursors QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
-        plt.text(0.5, 0.85, "test", ha='center', va='center', wrap=True)
+        plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
                 
         # Display table of counts
         table_data = [["Run", "DF Count"]]
