@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import warnings
+from silac_dia_tools.pipeline.utils import manage_directories
 
 
 def create_report(df, contams, filtered_out, path, params):
@@ -29,7 +30,8 @@ def create_report(df, contams, filtered_out, path, params):
     filtered_out_grouped = filtered_out.groupby('Run')
 
     # Set up the PDF
-    create_reports_directory(path)
+    # create_reports_directory(path)
+    manage_directories.create_directory(path,'reports')
     output_dir = path + '/reports'
     pdf_path = os.path.join(output_dir, 'filtering_report.pdf')
 
@@ -79,14 +81,14 @@ def plot_histograms_for_run(run, dfs, labels, column='Precursor.Quantity'):
     plt.ylabel('Frequency')
     plt.legend()
 
-#create preprocessing directory for new files 
-def create_reports_directory(path):
-    # Combine the paths
-    new_folder_path = os.path.join(path, 'reports')
+# #create preprocessing directory for new files 
+# def create_reports_directory(path):
+#     # Combine the paths
+#     new_folder_path = os.path.join(path, 'reports')
     
-    # Create the new folder
-    if not os.path.exists(new_folder_path):
-        os.makedirs(new_folder_path)
-        print(f"Folder reports created successfully at {new_folder_path}")
-    else:
-        print(f"Folder reports already exists at {new_folder_path}")
+#     # Create the new folder
+#     if not os.path.exists(new_folder_path):
+#         os.makedirs(new_folder_path)
+#         print(f"Folder reports created successfully at {new_folder_path}")
+#     else:
+#         print(f"Folder reports already exists at {new_folder_path}")

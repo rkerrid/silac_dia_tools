@@ -18,7 +18,7 @@ class PrecursorRollup:
         return group[group['quantity type'] == 'Ms1.Translated']
 
     def calculate_protein_level_ratios(self, df):
-        print('Importing SILAC precursors')
+        # print('Importing SILAC precursors')
         # df = pd.read_csv(f'{self.path}preprocessing/silac_precursors.tsv', sep='\t')
         
         print("Calculating ratios from precursor information")
@@ -71,6 +71,6 @@ class PrecursorRollup:
         # print('Saving protein_ratios.csv')
         # protein_ratios.to_csv(f'{self.path}preprocessing/protein_ratios.csv', sep=',')
         # protein_group_report.create_report(protein_ratios, self.path)
-        print('Done!')
+        # print('Done!')
         self.protein_groups = protein_ratios
         return self.protein_groups 

@@ -28,6 +28,8 @@ class Preprocessor:
         self.params = self.load_params()
         self.chunk_size = 100000
         self.relable_with_meta = self.confirm_metadata()
+        if self.relable_with_meta:
+            self.meta_data = pd.read_csv(f'{self.path}{self.meta}', sep=',')
         self.update = True
         
     def load_params(self):
@@ -76,7 +78,7 @@ class Preprocessor:
             for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
                 # if applicable, relable chunk Run colum with metadata
                 if self.relable_with_meta:
-                    # chunk = relable_run(chunk, meta_data)
+                    chunk = self.relable_run(chunk)
                     print("relable funciton (finish if all else works")
                 
                 # Apply filtering to each chunk
@@ -102,25 +104,24 @@ class Preprocessor:
         df = pd.concat(chunks, ignore_index=True)
         
         # Pass filtering information to reports
-        print('Generating filtering report')
-        # filtering_report.filtering_qc(df, contams, filtered_set, path, params)
-        self.create_preprocessing_directory()
+        # print('Generating filtering report')
+        # self.create_preprocessing_directory()
         # print('Saving filtered_report.tsv')
         # df.to_csv(f'{self.path}preprocessing/report_filtered.tsv',sep='\t')
         print('Filtering complete')
         return df, contams, filtered_set
 
 
-    def create_preprocessing_directory(self):
-       # Combine the paths
-       new_folder_path = os.path.join(self.path, 'preprocessing')
+    # def create_preprocessing_directory(self):
+    #    # Combine the paths
+    #    new_folder_path = os.path.join(self.path, 'preprocessing')
        
-       # Create the new folder
-       if not os.path.exists(new_folder_path):
-           os.makedirs(new_folder_path)
-           print(f"Folder preprocessing created successfully at {new_folder_path}")
-       else:
-           print(f"Folder preprocessing already exists at {new_folder_path}")
+    #    # Create the new folder
+    #    if not os.path.exists(new_folder_path):
+    #        os.makedirs(new_folder_path)
+    #        print(f"Folder preprocessing created successfully at {new_folder_path}")
+    #    else:
+    #        print(f"Folder preprocessing already exists at {new_folder_path}")
     
     #Filtering
     def remove_contaminants(self, chunk): # is self needed?
@@ -177,7 +178,7 @@ class Preprocessor:
         return chunk
     
     def relable_run(self, chunk):
-        run_to_sample = dict(zip(self.meta['Run'], self.meta['Sample']))
+        run_to_sample = dict(zip(self.meta_data['Run'], self.meta_data['Sample']))
 
         # Apply the mapping to df2['Run'] and raise an error if a 'Run' value doesn't exist in df1
         chunk['Run'] = chunk['Run'].map(run_to_sample)

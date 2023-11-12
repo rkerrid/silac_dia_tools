@@ -13,11 +13,12 @@ class SilacFormatter:
         self.stacked_intensities = None
         
     def format_silac_channels(self, filtered_report):
+        print('Beggining formatiing silac channels')
         self.parsed_df = self.parse_data_for_channel_info(filtered_report)
         self.combined_precursors = self.combine_modified_precursors()
         self.stacked_intensities = self.stack_intensities()
         
-        print('Done!')
+        print('Finished formatiing silac channels')
         return self.stacked_intensities
 
 
