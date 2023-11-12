@@ -53,14 +53,3 @@ def create_report(df, path, params):
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()
 
-# #create preprocessing directory for new files 
-# def create_reports_directory(path):
-#     # Combine the paths
-#     new_folder_path = os.path.join(path, 'reports')
-    
-#     # Create the new folder
-#     if not os.path.exists(new_folder_path):
-#         os.makedirs(new_folder_path)
-#         print(f"Folder reports created successfully at {new_folder_path}")
-#     else:
-#         print(f"Folder reports already exists at {new_folder_path}")

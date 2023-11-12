@@ -18,13 +18,10 @@ import os
 import sys
 print(sys.path)
 
-from silac_dia_tools.pipeline import filtering_diann_report as fdia
-from silac_dia_tools.pipeline import format_silac_precursors as pdia
-from silac_dia_tools.pipeline import extract_protein_level_ratios as rdia
-from silac_dia_tools.pipeline import calculate_protein_intensities as idia
+from silac_dia_tools.pipeline.pipeline import Pipeline
 
 test_data_bm = 'C:/data/silac_dia_tools_files/data/BM data/' 
-test_data_bm = 'G:/My Drive/Data/data/BM data/'                  
+test_data_bm = 'C:/phd projects/silac_dia_tools/test data/'                  
 
 def filter_and_rename(df, string, rep_string):
     cols = [col for col in df.columns if string in col and rep_string in col]
@@ -57,8 +54,8 @@ def plot_data(ax, df, mask, color, label, x_col, y_col, plot_median=False):
 def add_href_intensity(df):
     df = df.copy()
     href = pd.read_csv(f'{test_data_bm}protein intensities/reference_href.csv')
-    href = href[['Protein.Group','Popeye_20230322_MGE_HStdia_S5_sim1_11_rep3_A1_1_3553']] # get the x asiy for all plots which will be the href from S5 rep3, df is Protein.Group, 1a
-    href.rename(columns = {'Popeye_20230322_MGE_HStdia_S5_sim1_11_rep3_A1_1_3553':'href'}, inplace=True)
+    href = href[['Protein.Group','S5']] # get the x asiy for all plots which will be the href from S5 rep3, df is Protein.Group, 1a
+    href.rename(columns = {'S5':'href'}, inplace=True)
     
     df = df.merge(href[['Protein.Group', 'href']],
                   on='Protein.Group',
@@ -68,8 +65,11 @@ def add_href_intensity(df):
     return df
     
 def plot_ratios(df, expected_human, expected_ecoli, title):
-    df_S4 = filter_and_rename(df, 'S4', 'rep3')
-    df_S5 = filter_and_rename(df, 'S5', 'rep3')
+ 
+    df_S4 = df[['Protein.Group','S4']]
+    df_S4 = df_S4.rename(columns={'S4':'Measurement'})
+    df_S5 = df[['Protein.Group','S5']]
+    df_S5 = df_S5.rename(columns={'S5':'Measurement'})
     df_S5 = calculate_ratios(df_S4, df_S5)
     
     mask_ecoli = df_S5['Protein.Group'].str.contains('ECOLI_')
@@ -104,129 +104,134 @@ def save_plot_to_pdf(df,  expected_human, expected_ecoli, title, filename):
     fig.savefig(filename)  # Save the figure object directly
     plt.close(fig)  # Close the specific figure
 
+
+
+
+
+def analyze_results():
+    # # import dlfq normalized proteomes and compare s5:s4 ecoli and human ratios rep3
+    df_light_lfq = pd.read_csv(f'{test_data_bm}protein intensities/light_dlfq.csv')
+    df_heavy_lfq = pd.read_csv(f'{test_data_bm}protein intensities/nsp_dlfq.csv')
+    df_total_lfq = pd.read_csv(f'{test_data_bm}protein intensities/total_dlfq.csv')
+    
+    # # import href normalized proteomes and compare s5:s4 ecoli and human ratios rep3
+    df_light_href = pd.read_csv(f'{test_data_bm}protein intensities/light_href.csv')
+    df_heavy_href = pd.read_csv(f'{test_data_bm}protein intensities/reference_href.csv')
+    df_total_href = df_heavy_href.copy()
+    df_total_href.iloc[:,1:] = df_heavy_href.iloc[:,1:].add(df_light_href.iloc[:,1:])
+    
+    
+    # # import unnormalized proteomes and compare s5:s4 ecoli and human ratios rep3
+    df_light = pd.read_csv(f'{test_data_bm}protein intensities/light_unnorm.csv')
+    df_heavy = pd.read_csv(f'{test_data_bm}protein intensities/reference_unnorm.csv')
+    df_total = df_heavy.copy()
+    df_total.iloc[:,1:] = df_heavy.iloc[:,1:].add(df_light.iloc[:,1:])
+    
+    # workings for human abundance in each sample
+    human_light_s5 = 66.8 
+    human_light_s4 = 66.8 
+    human_heavy = 60
+    human_total_s5 = human_light_s5 + human_heavy
+    human_total_s4 = human_light_s4 + human_heavy
+    # workings for ecoli abundance in each sample
+    ecoli_light_s5 = 66.8 
+    ecoli_light_s4 = 6.8
+    ecoli_heavy = 6
+    ecoli_total_s5 = ecoli_light_s5 + ecoli_heavy
+    ecoli_total_s4 = ecoli_light_s4 + ecoli_heavy
+    # workings for expected ratios in each channel (human)
+    expected_human_light = human_light_s4/human_light_s5
+    expected_human_heavy = human_heavy/human_heavy
+    expected_human_total = human_total_s4/human_total_s5
+    # workings for expected ratios in each channel (ecoli)
+    expected_ecoli_light = ecoli_light_s4/ecoli_light_s5
+    expected_ecoli_heavy = ecoli_heavy/ecoli_heavy
+    expected_ecoli_total = ecoli_total_s4/ecoli_total_s5
+    
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size = 12)
+    pdf.cell(200, 10, txt = "Bench Mark Ratio Report Comparing LFQ, Heavy Reference, and Unnormalized Data", ln = True, align = 'C')
+    
+    # Add the variables block
+    vars_block = """
+    # workings for human abundance in each sample
+    human_light_s5 = 66.8 
+    human_light_s4 = 66.8 
+    human_heavy = 60
+    human_total_s5 = human_light_s5 + human_heavy
+    human_total_s4 = human_light_s4 + human_heavy
+    # workings for ecoli abundance in each sample
+    ecoli_light_s5 = 66.8 
+    ecoli_light_s4 = 6.8
+    ecoli_heavy = 6
+    ecoli_total_s5 = ecoli_light_s5 + ecoli_heavy
+    ecoli_total_s4 = ecoli_light_s4 + ecoli_heavy
+    # workings for expected ratios in each channel (human)
+    expected_human_light = human_light_s4/human_light_s5
+    expected_human_heavy = human_heavy/human_heavy
+    expected_human_total = human_total_s4/human_total_s5
+    # workings for expected ratios in each channel (ecoli)
+    expected_ecoli_light = ecoli_light_s4/ecoli_light_s5
+    expected_ecoli_heavy = ecoli_heavy/ecoli_heavy
+    expected_ecoli_total = ecoli_total_s4/ecoli_total_s5
+    """
+    pdf.multi_cell(0, 10, txt = vars_block)
+    
+    # Save the plots to individual files and add them to the PDF
+    plots = [
+        ("df_light", "expected_human_light", "expected_ecoli_light", "Light (no norm)"),
+        ("df_heavy", "expected_human_heavy", "expected_ecoli_heavy", "Heavy (no norm)"),
+        ("df_total", "expected_human_total", "expected_ecoli_total", "Total (no norm)"),
+        
+        ("df_light_lfq", "expected_human_light", "expected_ecoli_light", "Light (lfq)"),
+        ("df_heavy_lfq", "expected_human_heavy", "expected_ecoli_heavy", "Heavy (lfq)"),
+        ("df_total_lfq", "expected_human_total", "expected_ecoli_total", "Total (lfq)"),
+        
+        ("df_light_href", "expected_human_light", "expected_ecoli_light", "Light (href)"),
+        ("df_heavy_href", "expected_human_heavy", "expected_ecoli_heavy", "Heavy (href)"),
+        ("df_total_href", "expected_human_light", "expected_ecoli_total", "Total (href)")
+        
+    ]
+    
+    
+    pdf_output_path = os.path.join(test_data_bm, "benchmark_report.pdf")
+    
+    for df_name, human_exp, ecoli_exp, title in plots:
+        plot_filename = os.path.join(test_data_bm, f"{title.replace(' ', '_')}.png")
+        
+        try:
+            # Save plot
+            save_plot_to_pdf(eval(df_name), eval(human_exp), eval(ecoli_exp), title, plot_filename)
+            
+            # Debugging: Check if file exists and print its size
+            if os.path.exists(plot_filename):
+                print(f"Plot {title} saved successfully at {plot_filename}, Size: {os.path.getsize(plot_filename)} bytes")
+            else:
+                print(f"Failed to save the plot: {title}")
+                continue  # Skip to next iteration if the plot was not saved
+            
+            # Add to PDF
+            pdf.add_page()
+            pdf.image(plot_filename, x = 10, y = 10, w = 180)  # Specify size and position
+    
+            
+            # Remove plot file
+            os.remove(plot_filename)  
+        except Exception as e:
+            print(f"An error occurred while processing {title}: {str(e)}")
+    
+    
+    
+    pdf.output(pdf_output_path)
+    
+    
  
 # Process diann output files: filtering, formatting silac precursors, ratios, intensities (directLFQ) with 'H pulse'
-f_df, contams_df, fout_df = fdia.import_and_filter(test_data_bm, update=True)
-pre_df = pdia.format_silac_channels(test_data_bm)
-ratio_df = rdia.calculate_protein_level_ratios(test_data_bm)
-idia.output_dlfq(test_data_bm, pulse_channel='H')
-idia.output_unnorm(test_data_bm, True, pulse_channel='H')
-idia.output_href(test_data_bm)
+pipeline = Pipeline(test_data_bm, 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="H")
 
-# # import dlfq normalized proteomes and compare s5:s4 ecoli and human ratios rep3
-df_light_lfq = pd.read_csv(f'{test_data_bm}protein intensities/light_dlfq.csv')
-df_heavy_lfq = pd.read_csv(f'{test_data_bm}protein intensities/nsp_dlfq.csv')
-df_total_lfq = pd.read_csv(f'{test_data_bm}protein intensities/total_dlfq.csv')
+pipeline.run_dlfq_pipeline()
+pipeline.run_href_pipeline()
+pipeline.generate_reports()
 
-# # import href normalized proteomes and compare s5:s4 ecoli and human ratios rep3
-df_light_href = pd.read_csv(f'{test_data_bm}protein intensities/light_href.csv')
-df_heavy_href = pd.read_csv(f'{test_data_bm}protein intensities/reference_href.csv')
-df_total_href = df_heavy_href.copy()
-df_total_href.iloc[:,1:] = df_heavy_href.iloc[:,1:].add(df_light_href.iloc[:,1:])
-
-
-# # import unnormalized proteomes and compare s5:s4 ecoli and human ratios rep3
-df_light = pd.read_csv(f'{test_data_bm}protein intensities/light_unnorm.csv')
-df_heavy = pd.read_csv(f'{test_data_bm}protein intensities/reference_unnorm.csv')
-df_total = df_heavy.copy()
-df_total.iloc[:,1:] = df_heavy.iloc[:,1:].add(df_light.iloc[:,1:])
-
-# workings for human abundance in each sample
-human_light_s5 = 66.8 
-human_light_s4 = 66.8 
-human_heavy = 60
-human_total_s5 = human_light_s5 + human_heavy
-human_total_s4 = human_light_s4 + human_heavy
-# workings for ecoli abundance in each sample
-ecoli_light_s5 = 66.8 
-ecoli_light_s4 = 6.8
-ecoli_heavy = 6
-ecoli_total_s5 = ecoli_light_s5 + ecoli_heavy
-ecoli_total_s4 = ecoli_light_s4 + ecoli_heavy
-# workings for expected ratios in each channel (human)
-expected_human_light = human_light_s4/human_light_s5
-expected_human_heavy = human_heavy/human_heavy
-expected_human_total = human_total_s4/human_total_s5
-# workings for expected ratios in each channel (ecoli)
-expected_ecoli_light = ecoli_light_s4/ecoli_light_s5
-expected_ecoli_heavy = ecoli_heavy/ecoli_heavy
-expected_ecoli_total = ecoli_total_s4/ecoli_total_s5
-
-pdf = FPDF()
-pdf.add_page()
-pdf.set_font("Arial", size = 12)
-pdf.cell(200, 10, txt = "Bench Mark Ratio Report Comparing LFQ, Heavy Reference, and Unnormalized Data", ln = True, align = 'C')
-
-# Add the variables block
-vars_block = """
-# workings for human abundance in each sample
-human_light_s5 = 66.8 
-human_light_s4 = 66.8 
-human_heavy = 60
-human_total_s5 = human_light_s5 + human_heavy
-human_total_s4 = human_light_s4 + human_heavy
-# workings for ecoli abundance in each sample
-ecoli_light_s5 = 66.8 
-ecoli_light_s4 = 6.8
-ecoli_heavy = 6
-ecoli_total_s5 = ecoli_light_s5 + ecoli_heavy
-ecoli_total_s4 = ecoli_light_s4 + ecoli_heavy
-# workings for expected ratios in each channel (human)
-expected_human_light = human_light_s4/human_light_s5
-expected_human_heavy = human_heavy/human_heavy
-expected_human_total = human_total_s4/human_total_s5
-# workings for expected ratios in each channel (ecoli)
-expected_ecoli_light = ecoli_light_s4/ecoli_light_s5
-expected_ecoli_heavy = ecoli_heavy/ecoli_heavy
-expected_ecoli_total = ecoli_total_s4/ecoli_total_s5
-"""
-pdf.multi_cell(0, 10, txt = vars_block)
-
-# Save the plots to individual files and add them to the PDF
-plots = [
-    ("df_light", "expected_human_light", "expected_ecoli_light", "Light (no norm)"),
-    ("df_heavy", "expected_human_heavy", "expected_ecoli_heavy", "Heavy (no norm)"),
-    ("df_total", "expected_human_total", "expected_ecoli_total", "Total (no norm)"),
-    
-    ("df_light_lfq", "expected_human_light", "expected_ecoli_light", "Light (lfq)"),
-    ("df_heavy_lfq", "expected_human_heavy", "expected_ecoli_heavy", "Heavy (lfq)"),
-    ("df_total_lfq", "expected_human_total", "expected_ecoli_total", "Total (lfq)"),
-    
-    ("df_light_href", "expected_human_light", "expected_ecoli_light", "Light (href)"),
-    ("df_heavy_href", "expected_human_heavy", "expected_ecoli_heavy", "Heavy (href)"),
-    ("df_total_href", "expected_human_light", "expected_ecoli_total", "Total (href)")
-    
-]
-
-
-pdf_output_path = os.path.join(test_data_bm, "benchmark_report.pdf")
-
-for df_name, human_exp, ecoli_exp, title in plots:
-    plot_filename = os.path.join(test_data_bm, f"{title.replace(' ', '_')}.png")
-    
-    try:
-        # Save plot
-        save_plot_to_pdf(eval(df_name), eval(human_exp), eval(ecoli_exp), title, plot_filename)
-        
-        # Debugging: Check if file exists and print its size
-        if os.path.exists(plot_filename):
-            print(f"Plot {title} saved successfully at {plot_filename}, Size: {os.path.getsize(plot_filename)} bytes")
-        else:
-            print(f"Failed to save the plot: {title}")
-            continue  # Skip to next iteration if the plot was not saved
-        
-        # Add to PDF
-        pdf.add_page()
-        pdf.image(plot_filename, x = 10, y = 10, w = 180)  # Specify size and position
-
-        
-        # Remove plot file
-        os.remove(plot_filename)  
-    except Exception as e:
-        print(f"An error occurred while processing {title}: {str(e)}")
-
-
-
-pdf.output(pdf_output_path)
-
-
+analyze_results()

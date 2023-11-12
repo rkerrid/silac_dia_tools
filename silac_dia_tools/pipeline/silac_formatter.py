@@ -1,7 +1,6 @@
 
 import pandas as pd
 import numpy as np
-from silac_dia_tools.pipeline.report import precursor_report
 
 
 class SilacFormatter:
@@ -20,7 +19,6 @@ class SilacFormatter:
         
         print('Finished formatiing silac channels')
         return self.stacked_intensities
-
 
     def parse_data_for_channel_info(self, filtered_report):
         print('Parsing data for SILAC intensities')

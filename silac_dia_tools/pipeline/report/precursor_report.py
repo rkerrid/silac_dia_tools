@@ -76,15 +76,3 @@ def plot_histograms_for_run(run, df_grouped, labels):
     plt.ylabel('Frequency')
     plt.legend()
 
-
-# #create preprocessing directory for new files 
-# def create_reports_directory(path):
-#     # Combine the paths
-#     new_folder_path = os.path.join(path, 'reports')
-    
-#     # Create the new folder
-#     if not os.path.exists(new_folder_path):
-#         os.makedirs(new_folder_path)
-#         print(f"Folder reports created successfully at {new_folder_path}")
-#     else:
-#         print(f"Folder reports already exists at {new_folder_path}")

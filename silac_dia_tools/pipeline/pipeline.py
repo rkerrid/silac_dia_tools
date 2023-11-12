@@ -17,7 +17,7 @@ class Pipeline:
         self.contains_reference = contains_reference
         
         # pipeline objects
-        self.preprocessor = Preprocessor(self.path, self.parameter_file ,self.meta)
+        self.preprocessor = Preprocessor(self.path, self.parameter_file, self.meta)
         self.formatter = SilacFormatter(self.path)
         self.precursor_rollup = PrecursorRollup(self.path)
         self.intensity_calculator = IntensityCalculator(self.path, self.contains_reference, self.pulse_channel)
@@ -77,6 +77,7 @@ class Pipeline:
         self._preprocess()
         self._format_channels()
         self._roll_up_to_protein_level()
+        self.save_preprocessing()
         self._output_unnormalized()
        
         self._output_href()
@@ -85,6 +86,7 @@ class Pipeline:
         self._preprocess()
         self._format_channels()
         self._roll_up_to_protein_level()
+        self.save_preprocessing()
         self._output_unnormalized()
         
         self._output_dlfq()
@@ -96,16 +98,6 @@ class Pipeline:
         precursor_report.create_report(self.formatted_precursors, self.path, self.params)
         print('Beginning protein group report')
         protein_group_report.create_report(self.protein_groups, self.path, self.params)
+        print('Beginning protein intensities report')
         file_list = [f for f in os.listdir(f'{self.path}protein intensities') if os.path.isfile(os.path.join(f'{self.path}protein intensities', f))]
-
-        # all_intensities = [self.unnormalized_total_intensities,
-        #                    self.unnormalized_nsp_intensities,
-        #                    self.light_unormalized_intensities,
-        #                    self.href_total_intensities,
-        #                    self.href_nsp_intensities,
-        #                    self.href_nsp_light,
-        #                    self.dlfq_nsp_intensities,
-        #                    self.dlfq_total_intensities,
-        #                    self.dlfq_total_light] 
-        
         protein_intensities_report.create_report(file_list, self.path, self.params)

@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from silac_dia_tools.pipeline.report import protein_group_report
 
 
 class PrecursorRollup:
@@ -18,9 +17,7 @@ class PrecursorRollup:
         return group[group['quantity type'] == 'Ms1.Translated']
 
     def calculate_protein_level_ratios(self, df):
-        # print('Importing SILAC precursors')
-        # df = pd.read_csv(f'{self.path}preprocessing/silac_precursors.tsv', sep='\t')
-        
+  
         print("Calculating ratios from precursor information")
         protein_precursors = df.groupby(['Run', 'Protein.Group'])
         
@@ -64,13 +61,8 @@ class PrecursorRollup:
                 protein_missed += 1
         print('Total proteins counted ', protein_count)
         print('Total sets of precursors that didnt meet mimimum unique precursor requirements ', protein_missed, ' out of ', len(protein_precursors))
-       
-        
+           
         protein_ratios = pd.DataFrame(protein_data)
         
-        # print('Saving protein_ratios.csv')
-        # protein_ratios.to_csv(f'{self.path}preprocessing/protein_ratios.csv', sep=',')
-        # protein_group_report.create_report(protein_ratios, self.path)
-        # print('Done!')
         self.protein_groups = protein_ratios
         return self.protein_groups 

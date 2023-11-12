@@ -17,6 +17,9 @@ import pandas as pd
 import json
 import os
 import operator
+import dask.dataframe as dd
+import datatable as dt
+from icecream import ic
 
 
 class Preprocessor:
@@ -25,26 +28,27 @@ class Preprocessor:
         self.parameter_file = parameter_file
         self.meta = meta
         self.config_dir = config_dir or os.path.join(os.path.dirname(__file__), '..', 'configs')
-        self.params = self.load_params()
+        self.params = self._load_params()
         self.chunk_size = 100000
-        self.relable_with_meta = self.confirm_metadata()
+        self.relable_with_meta = self._confirm_metadata()
         if self.relable_with_meta:
             self.meta_data = pd.read_csv(f'{self.path}{self.meta}', sep=',')
+            print('Will relabel runs with metadata sample column')
         self.update = True
         
-    def load_params(self):
+    def _load_params(self):
         json_path = os.path.join(self.config_dir, self.parameter_file)
         with open(json_path, 'r') as f:
             params = json.load(f)
             return params 
     
-    def confirm_metadata(self):
+    def _confirm_metadata(self):
         if self.meta is None:
             print("No metadata added, filtering will continue without relabeling")
             return False
         elif isinstance(self.meta, str):
             print("Metadata added, looking for the following file:", self.meta)
-            meta_exists = self.check_directory()
+            meta_exists = self._check_directory()
             if meta_exists:
                 return True
             else:
@@ -54,7 +58,7 @@ class Preprocessor:
             print("File name is not a string, filering will continue without relabeling")
             return False
     
-    def check_directory(self):
+    def _check_directory(self):
         file_list = os.listdir(self.path)
         # Iterate through the list of filenames and check for a match
         found = False
@@ -75,11 +79,11 @@ class Preprocessor:
             chunks = []
             contams = []
             filtered_set = []
+    
             for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
                 # if applicable, relable chunk Run colum with metadata
                 if self.relable_with_meta:
                     chunk = self.relable_run(chunk)
-                    print("relable funciton (finish if all else works")
                 
                 # Apply filtering to each chunk
                 chunk, contam = self.remove_contaminants(chunk)
@@ -98,31 +102,22 @@ class Preprocessor:
                     print('chunk ', count,' processed')
                 count+=1
             
-        # Concatenate all chunks into a DataFrames
-        filtered_set = pd.concat(filtered_set, ignore_index=True)
-        contams = pd.concat(contams, ignore_index=True)
-        df = pd.concat(chunks, ignore_index=True)
+            # Concatenate all chunks into a DataFrames
+            filtered_set = pd.concat(filtered_set, ignore_index=True)
+            contams = pd.concat(contams, ignore_index=True)
+            df = pd.concat(chunks, ignore_index=True)
+            
         
-        # Pass filtering information to reports
-        # print('Generating filtering report')
-        # self.create_preprocessing_directory()
-        # print('Saving filtered_report.tsv')
-        # df.to_csv(f'{self.path}preprocessing/report_filtered.tsv',sep='\t')
+        # # Apply filtering to each chunk
+        # df, contam = self.remove_contaminants(df)
+        # df, filtered_out = self.apply_filters(df)
+        
+        # # Drop unnecesary columns
+        # df = self.drop_cols(df) 
+        
         print('Filtering complete')
         return df, contams, filtered_set
 
-
-    # def create_preprocessing_directory(self):
-    #    # Combine the paths
-    #    new_folder_path = os.path.join(self.path, 'preprocessing')
-       
-    #    # Create the new folder
-    #    if not os.path.exists(new_folder_path):
-    #        os.makedirs(new_folder_path)
-    #        print(f"Folder preprocessing created successfully at {new_folder_path}")
-    #    else:
-    #        print(f"Folder preprocessing already exists at {new_folder_path}")
-    
     #Filtering
     def remove_contaminants(self, chunk): # is self needed?
         # Create a contaminants mask based on the cont_ string and make sure all values are boolean

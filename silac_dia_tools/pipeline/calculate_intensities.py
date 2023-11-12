@@ -1,5 +1,4 @@
 import pandas as pd
-import os
 from silac_dia_tools.pipeline.utils import dlfq_functions as dlfq
 from silac_dia_tools.pipeline.utils import manage_directories
 
@@ -9,26 +8,11 @@ class IntensityCalculator:
         self.path = path
         self.pulse_channel = pulse_channel
         self.contains_reference = contains_reference
-        
-    # @staticmethod
-    # def create_directory(directory_path):
-    #     if not os.path.exists(directory_path):
-    #         os.makedirs(directory_path)
-    #         print(f"Folder created successfully at {directory_path}")
-    #     else:
-    #         print(f"Folder already exists at {directory_path}")
-
-    # def create_protein_intensity_directory(self):
-    #     new_folder_path = os.path.join(self.path, 'protein intensities')
-    #     self.create_directory(new_folder_path)
 
     def output_href(self, ratios):
-        # self.create_protein_intensity_directory()
         manage_directories.create_directory(self.path,'protein intensities')
         print('Calculating href intensities')
-        # Import protein level ratios
-        # ratios = pd.read_csv(f'{self.path}preprocessing/protein_ratios.csv')
-        
+     
         # Generate href df
         h_ref = ratios.groupby('Protein.Group')['H intensity'].median()
         h_ref = h_ref.reset_index().rename(columns={'H intensity': 'h_ref'})
@@ -57,14 +41,11 @@ class IntensityCalculator:
         total_hnorm = total_hnorm.pivot(index='Protein.Group', columns='Run', values='Total intensity')
         reference = reference.pivot(index='Protein.Group', columns='Run', values='H intensity')
         
-        # nsp to light ratio and light to H ratio
-        
         light_hnorm.to_csv(f'{self.path}protein intensities/light_href.csv', sep=',')  
         nsp_hnorm.to_csv(f'{self.path}protein intensities/nsp_href.csv', sep=',')
         total_hnorm.to_csv(f'{self.path}protein intensities/total_href.csv', sep=',')
         reference.to_csv(f'{self.path}protein intensities/reference_href.csv', sep=',')
-        
-
+    
         print('Saved H reference normalized protein intensities')
         return total_hnorm, nsp_hnorm, light_hnorm
 
@@ -73,9 +54,7 @@ class IntensityCalculator:
         # self.create_protein_intensity_directory()
         manage_directories.create_directory(self.path,'protein intensities')
         print('Calculating unnormalized intensities')
-        # Import ratios table
-        # ratios = pd.read_csv(f'{self.path}preprocessing/protein_ratios.csv')
-        
+   
         # Assign intensities to relevant columns
         nsp_channel = self.pulse_channel + ' intensity'
         ratios['Total intensity'] = ratios['L intensity'] +  ratios[nsp_channel]
@@ -91,8 +70,6 @@ class IntensityCalculator:
         nsp_unnorm = nsp_unnorm.pivot(index='Protein.Group', columns='Run', values='NSP intensity')
         total_unnorm = total_unnorm.pivot(index='Protein.Group', columns='Run', values='Total intensity')
         
-        # nsp to light ratio and light to H ratio
-        
         # Save tables to CSV
         light_unnorm.to_csv(f'{self.path}protein intensities/light_unnorm.csv', sep=',')
         nsp_unnorm.to_csv(f'{self.path}protein intensities/nsp_unnorm.csv', sep=',')
@@ -106,15 +83,9 @@ class IntensityCalculator:
         return nsp_unnorm, total_unnorm, light_unnorm
 
     def output_dlfq(self, ratios, silac_precursors):
-        # self.create_protein_intensity_directory()
         manage_directories.create_directory(self.path,'protein intensities')
         print('Calculating dlfq intensities')
-        # Import ratios
-        # ratios = pd.read_csv(f'{self.path}preprocessing/protein_ratios.csv')
         nsp_ratio = self.pulse_channel + ' to stack ratio'
-      
-        # Read in precursors and save ms1 translated only file as input into directLFQ
-        # silac_precursors = pd.read_csv(f'{self.path}preprocessing/silac_precursors.tsv', sep='\t')
         
         silac_precursors = silac_precursors[silac_precursors['quantity type']== 'Ms1.Translated']
         silac_precursors.to_csv(f'{self.path}preprocessing/silac_precursors_dlfq_in.tsv', sep='\t')

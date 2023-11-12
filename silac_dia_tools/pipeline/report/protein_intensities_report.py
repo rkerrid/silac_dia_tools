@@ -36,16 +36,7 @@ def create_correlation_heatmap(df, pdf):
     pdf.savefig(f)
     plt.close(f)
 
-# def create_reports_directory(path):
-#     # Combine the paths
-#     new_folder_path = os.path.join(path, 'reports')
 
-#     # Create the new folder
-#     if not os.path.exists(new_folder_path):
-#         os.makedirs(new_folder_path)
-#         print(f"Folder 'reports' created successfully at {new_folder_path}")
-#     else:
-#         print(f"Folder 'reports' already exists at {new_folder_path}")
 
 def create_report(file_list, path, params):
     # Construct the description string
@@ -72,6 +63,4 @@ def create_report(file_list, path, params):
         # Add correlation heatmap page
         # create_correlation_heatmap(df, pdf)
 
-# Now you can call create_report with the dataframe, path, and parameters
-# Example usage:
-# create_report(your_dataframe, 'path_to_directory', your_params_dictionary)
+
