@@ -9,9 +9,10 @@ from silac_dia_tools.pipeline.pipeline import Pipeline
 
 if __name__ == "__main__":
     pipeline = Pipeline('G:/My Drive/Data/data/eIF4F optimization/', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
- 
+    pipeline = Pipeline( 'G:/My Drive/Data/data/no spikein data/', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="M", meta="meta.csv")
+   
     
-    # pipeline.run_dlfq_pipeline()
+    pipeline.run_dlfq_pipeline()
     # pipeline.run_href_pipeline()
-    # pipeline.save_preprocessing()
-    # pipeline.generate_reports()
+    pipeline.save_preprocessing()
+    pipeline.generate_reports()

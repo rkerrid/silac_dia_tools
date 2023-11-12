@@ -1,0 +1,116 @@
+	value
+input_file	C:/phd projects/silac_dia_tools/test data/preprocessing/silac_precursors_dlfq_in.tsv
+file	C:/phd projects/silac_dia_tools/test data/preprocessing/dlfq_protein_intensities.tsv
+columns_to_add	[]
+selected_proteins_file	
+mq_protein_groups_txt	
+min_nonan	1
+input_type_to_use	
+maximum_number_of_quadratic_ions_to_use_per_protein	10
+number_of_quadratic_samples	50
+num_cores	1
+filename_suffix	
+deactivate_normalization	False
+input_df	"                                                                           S4  \
+protein                                          ion                            
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493- DLKPQNLLIDDK2      17.548980   
+                                                 DLKPQNLLIDDK3      14.757551   
+                                                 IGEGTYGVVYK2       15.159607   
+                                                 IRLESEEEGVPSTAIR3        NaN   
+                                                 LADFGLAR2          16.416139   
+...                                                                       ...   
+HUMAN_X5CMH5;X5CMH5-                             AHQILVLQEGK2       10.615914   
+                                                 EAVGGLQTVR2        11.403912   
+                                                 LAQLQEGQDLYSR2     15.659052   
+                                                 NNIAYGLQSCEDDK2     9.926340   
+                                                 VFSYMDR2                 NaN   
+
+                                                                           S5  
+protein                                          ion                           
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493- DLKPQNLLIDDK2      18.464680  
+                                                 DLKPQNLLIDDK3      14.918812  
+                                                 IGEGTYGVVYK2       15.105912  
+                                                 IRLESEEEGVPSTAIR3   8.672212  
+                                                 LADFGLAR2          16.518998  
+...                                                                       ...  
+HUMAN_X5CMH5;X5CMH5-                             AHQILVLQEGK2             NaN  
+                                                 EAVGGLQTVR2              NaN  
+                                                 LAQLQEGQDLYSR2     15.613370  
+                                                 NNIAYGLQSCEDDK2    11.127003  
+                                                 VFSYMDR2           10.657193  
+
+[38334 rows x 2 columns]"
+protein_df	"                                                             S4  \
+protein                                                           
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493-  579978.266030   
+A0A024R1R8;HUMAN_A0A024R1R8;HUMAN_Q9Y2S6;Q9Y2S6-  100462.081263   
+A0A024R4E5;HUMAN_A0A024R4E5-                      221842.348033   
+A0A024R571;HUMAN_A0A024R571;HUMAN_Q9H4M9;Q9H4M9-  115626.313695   
+A0A024R7P0;HUMAN_A0A024R7P0;HUMAN_O14593;O14593-    1441.352000   
+...                                                         ...   
+HUMAN_R4GN83;R4GN83-                                5760.490000   
+HUMAN_S4R3N1;S4R3N1-                               17208.461547   
+HUMAN_S4R418;S4R418-                               50981.441234   
+HUMAN_V9GYF0;V9GYF0-                               11036.210000   
+HUMAN_X5CMH5;X5CMH5-                               44527.993803   
+
+                                                             S5  \
+protein                                                           
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493-  623962.031061   
+A0A024R1R8;HUMAN_A0A024R1R8;HUMAN_Q9Y2S6;Q9Y2S6-   92468.769132   
+A0A024R4E5;HUMAN_A0A024R4E5-                      235332.556863   
+A0A024R571;HUMAN_A0A024R571;HUMAN_Q9H4M9;Q9H4M9-  110389.611999   
+A0A024R7P0;HUMAN_A0A024R7P0;HUMAN_O14593;O14593-     348.690299   
+...                                                         ...   
+HUMAN_R4GN83;R4GN83-                                2131.445963   
+HUMAN_S4R3N1;S4R3N1-                               18263.360359   
+HUMAN_S4R418;S4R418-                               55474.384564   
+HUMAN_V9GYF0;V9GYF0-                                8714.179896   
+HUMAN_X5CMH5;X5CMH5-                               66446.942405   
+
+                                                                                     Protein.Group  
+protein                                                                                             
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493-  A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493-  
+A0A024R1R8;HUMAN_A0A024R1R8;HUMAN_Q9Y2S6;Q9Y2S6-  A0A024R1R8;HUMAN_A0A024R1R8;HUMAN_Q9Y2S6;Q9Y2S6-  
+A0A024R4E5;HUMAN_A0A024R4E5-                                          A0A024R4E5;HUMAN_A0A024R4E5-  
+A0A024R571;HUMAN_A0A024R571;HUMAN_Q9H4M9;Q9H4M9-  A0A024R571;HUMAN_A0A024R571;HUMAN_Q9H4M9;Q9H4M9-  
+A0A024R7P0;HUMAN_A0A024R7P0;HUMAN_O14593;O14593-  A0A024R7P0;HUMAN_A0A024R7P0;HUMAN_O14593;O14593-  
+...                                                                                            ...  
+HUMAN_R4GN83;R4GN83-                                                          HUMAN_R4GN83;R4GN83-  
+HUMAN_S4R3N1;S4R3N1-                                                          HUMAN_S4R3N1;S4R3N1-  
+HUMAN_S4R418;S4R418-                                                          HUMAN_S4R418;S4R418-  
+HUMAN_V9GYF0;V9GYF0-                                                          HUMAN_V9GYF0;V9GYF0-  
+HUMAN_X5CMH5;X5CMH5-                                                          HUMAN_X5CMH5;X5CMH5-  
+
+[5509 rows x 3 columns]"
+ion_df	"                                                                              S4  \
+protein                                          ion                               
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493- DLKPQNLLIDDK2      65978.962888   
+                                                 DLKPQNLLIDDK3      85695.860066   
+                                                 IGEGTYGVVYK2       92323.862437   
+                                                 IRLESEEEGVPSTAIR3      0.000000   
+                                                 LADFGLAR2          87448.100000   
+...                                                                          ...   
+HUMAN_X5CMH5;X5CMH5-                             AHQILVLQEGK2           0.000000   
+                                                 EAVGGLQTVR2            0.000000   
+                                                 LAQLQEGQDLYSR2     51742.150000   
+                                                 NNIAYGLQSCEDDK2    33593.166205   
+                                                 VFSYMDR2               0.000000   
+
+                                                                               S5  
+protein                                          ion                               
+A0A024QZP7;HUMAN_A0A024QZP7;HUMAN_P06493;P06493- DLKPQNLLIDDK2      124468.274692  
+                                                 DLKPQNLLIDDK3       95830.623210  
+                                                 IGEGTYGVVYK2        88950.867737  
+                                                 IRLESEEEGVPSTAIR3   94079.894514  
+                                                 LADFGLAR2           93910.418598  
+...                                                                           ...  
+HUMAN_X5CMH5;X5CMH5-                             AHQILVLQEGK2            0.000000  
+                                                 EAVGGLQTVR2             0.000000  
+                                                 LAQLQEGQDLYSR2      50129.435203  
+                                                 NNIAYGLQSCEDDK2     77212.274062  
+                                                 VFSYMDR2                0.000000  
+
+[38231 rows x 2 columns]"
+outfile_basename	C:/phd projects/silac_dia_tools/test data/preprocessing/silac_precursors_dlfq_in.tsv
+directlfq_version	0.2.11
