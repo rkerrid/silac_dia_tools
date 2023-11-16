@@ -13,6 +13,6 @@ def create_directory(path, directory):
     # Create the new folder
     if not os.path.exists(new_folder_path):
         os.makedirs(new_folder_path)
-        print(f"Folder reports created successfully at {new_folder_path}")
+        print(f"Folder created successfully at {new_folder_path}")
     else:
-        print(f"Folder reports already exists at {new_folder_path}")
+        print(f"Folder already exists at {new_folder_path}")

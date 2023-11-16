@@ -1,0 +1,250 @@
+diff --git a/silac_dia_tools/pipeline/imputation.py b/silac_dia_tools/pipeline/imputation.py
+index 5caea31..987aac2 100644
+--- a/silac_dia_tools/pipeline/imputation.py
++++ b/silac_dia_tools/pipeline/imputation.py
+@@ -5,14 +5,7 @@ Created on Sun Nov 12 11:47:28 2023
+ @author: robbi
+ """
+ 
+-# -*- coding: utf-8 -*-
+-"""
+-Created on Thu Nov  9 18:41:09 2023
+-
+-@author: robbi
+-"""
+-
+-
++from utils import manage_directories
+ import pandas as pd
+ import numpy as np
+ from scipy import stats
+@@ -20,56 +13,43 @@ import seaborn as sns
+ import matplotlib.pyplot as plt
+ from icecream import ic
+ 
+-path = 'G:/My Drive/Data/data/no spikein data/'
++
+ # import metadata
+ def import_meta(path):
+     metadata = pd.read_csv(f"{path}meta.csv")
+     return metadata
+ 
+-def get_dataframes(path):
+-    total = pd.read_csv(f"{path}protein intensities/total_dlfq.csv", sep=',')
+-    light = pd.read_csv(f"{path}protein intensities/light_dlfq.csv", sep=',')
+-    nsp = pd.read_csv(f"{path}protein intensities/nsp_dlfq.csv", sep=',')
++def get_dataframes(path, quantification):
++    total = pd.read_csv(f"{path}protein intensities/total_{quantification}.csv", sep=',')
++    light = pd.read_csv(f"{path}protein intensities/light_{quantification}.csv", sep=',')
++    nsp = pd.read_csv(f"{path}protein intensities/nsp_{quantification}.csv", sep=',')
+     return total, light, nsp
+     
+-
+ def replace_values(df):
+         df.replace([np.inf, -np.inf], np.nan, inplace=True)
+         df.iloc[:,1:] = df.iloc[:,1:].apply(lambda x: np.where(x < 0.001, np.nan, x))
+         return df
+         
+-def filter_for_valid_values(df, metadata):
++def filter_for_valid_values(df, metadata, sample_group):
+     # Initialize a new column in df to track if the row should be kept
+     df['keep_row'] = False
+     
+-    for group in metadata['Treatment'].unique():
+-        sub_meta = metadata[metadata["Treatment"]==group]
++    for group in metadata[sample_group].unique():
++        sub_meta = metadata[metadata[sample_group] == group]
+         cols = sub_meta['Sample'].tolist()
+-        print(cols)
+-        
+-    
+-    # # Create a set of base column names by splitting the replicate numbers off and removing the 'Protein.Group'
+-    # base_columns = set(col.rsplit(' ', 1)[0] for col in df.columns if ' ' in col and col not in ['Protein.Group'])
+ 
+-    # # Iterate over each unique sample name (without replicate number)
+-    # for base in base_columns:
+-    #     col1 = f'{base} 1'
+-    #     col2 = f'{base} 2'
+-        
+-    #     # Check if both replicates have non-NaN values
+-    #     df['keep_row'] |= df[[col1, col2]].notna().all(axis=1)
+-    
+-    # # Select rows where 'keep_row' is True and drop the 'keep_row' column to clean up
+-    # df_filtered = df[df['keep_row']].drop(columns=['keep_row'])
+-    
+-    return df
++        # Check that we have at least 2 columns to compare, if not continue to next group
++        if len(cols) < 2:
++            continue
+ 
+-def drop_non8h_cols(df):
+-    columns_to_keep = [col for col in df.columns if '8h' in col or col == 'Protein.Group']
+-    
+-    # Create a new DataFrame with only the filtered columns
+-    df_filtered = df[columns_to_keep]
+-    return df_filtered
++        # Calculate the sum of valid (not NaN) values for the columns in cols
++        valid_sum = df[cols].notna().sum(axis=1)
++
++        # Update 'keep_row' to True where at least 2 of the columns are not NaN
++        df.loc[valid_sum >= 2, 'keep_row'] = True
++        df = df[df['keep_row']]
++    df.drop('keep_row', axis=1, inplace=True)
++    return df     
+ 
+ # imputation
+ def create_distribution(data):
+@@ -115,89 +95,63 @@ def plot_histogram(df, imputed_values):
+     # Plot histograms for each column in df and imputed_values
+     for  col in df.columns.values.tolist()[1:]:
+         
+-
+         plt.hist(df[col], bins=20, alpha=0.5, label='original data', color='blue')
+         plt.hist(imputed_values[col], bins=20, alpha=0.5, label='imputed values', color='green')
+         plt.title(col + ' Histogram')
+         plt.xlabel('Log2 intensity')
+         plt.ylabel('Frequency')
+         # plt.legend()
+-
+-  
+-
+         # Display the figure
+         plt.show()
+ 
+-# import meta and dataframes
+-metadata = import_meta(path)
+-groups = metadata['Treatment'].unique()
+-total, light, nsp = get_dataframes(path)
+-# replace NaN and inf values
+-total = replace_values(total)
+-light = replace_values(light)
+-nsp = replace_values(nsp)
+-# filter for valid values
+-
+-filter_for_valid_values(total, metadata)
+ 
++def process_intensities(path, metadata_sample_group, quantification='href', plot_imputation=False):
++    metadata = import_meta(path)
++    # groups = metadata[metadata_sample_group].unique()
++    total, light, nsp = get_dataframes(path,quantification)
++    # replace NaN and inf values
++    total = replace_values(total)
++    light = replace_values(light)
++    nsp = replace_values(nsp)
++    
++    # filter for valid values
++    total = filter_for_valid_values(total, metadata, metadata_sample_group)
++    light = filter_for_valid_values(light, metadata, metadata_sample_group)
++    nsp = filter_for_valid_values(nsp, metadata, metadata_sample_group)
++    
++    # log transform
++    total.iloc[:,1:] = np.log2(total.iloc[:,1:])
++    light.iloc[:,1:] = np.log2(light.iloc[:,1:])
++    nsp.iloc[:,1:] = np.log2(nsp.iloc[:,1:])
++    
++    
++    # impute with gausian shift
++    total_df, total_df_imputed = perform_imputation(total)
++    nsp_df, nsp_df_imputed = perform_imputation(nsp)
++    light_df, light_df_imputed = perform_imputation(light)
++    
++    if plot_imputation:
++        plot_histogram(total_df, total_df_imputed)
++        plot_histogram(nsp_df, nsp_df_imputed)
++        plot_histogram(light_df, light_df_imputed)
++    
++    # base 2 exponentiation before saving
++    total_df.iloc[:,1:] = 2**total_df.iloc[:,1:]
++    nsp_df.iloc[:,1:] = 2**nsp_df.iloc[:,1:]
++    light_df.iloc[:,1:] = 2**light_df.iloc[:,1:]
++    
++    manage_directories.create_directory(f"{path}", "imputed")
++    nsp_df.to_csv(f"{path}/imputed/nsp.csv", sep=',')
++    light_df.to_csv(f"{path}imputed/light.csv", sep=',')
++    total_df.to_csv(f"{path}imputed/total.csv", sep=',')
++    
++# import meta and dataframes
++path = 'G:/My Drive/Data/data/spikein data/eIF4F optimization/'
++metadata_sample_group = 'Treatment'
++# 
+ 
++process_intensities(path, metadata_sample_group)
+ 
+-# # Example usage with the provided DataFrame loading code
+-# nsp_df = pd.read_csv("G:/My Drive/Data/data/eIF4F optimization/protein intensities/nsp_href.csv", sep=',')
+-# total_df = pd.read_csv("G:/My Drive/Data/data/eIF4F optimization/protein intensities/total_href.csv", sep=',')
+-# light_df = pd.read_csv("G:/My Drive/Data/data/eIF4F optimization/protein intensities/light_href.csv", sep=',')
+-
+-# # nsp_df = pd.read_csv("G:/My Drive/Data/data/no spikein data/protein intensities/nsp_dlfq.csv", sep=',')
+-# # total_df = pd.read_csv("G:/My Drive/Data/data/no spikein data/protein intensities/total_dlfq.csv", sep=',')
+-# # light_df = pd.read_csv("G:/My Drive/Data/data/no spikein data/protein intensities/light_dlfq.csv", sep=',')
+-
+-
+-
+-# nsp_df = drop_non8h_cols(nsp_df)
+-# total_df = drop_non8h_cols(total_df)
+-# light_df = drop_non8h_cols(light_df)
+-
+-# # replace = and -inf 
+-# total_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+-# nsp_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+-# light_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+-
+-# # Replace low values with NaN for filtering
+-# total_df.iloc[:,1:] = total_df.iloc[:,1:].apply(lambda x: np.where(x < 0.001, np.nan, x))
+-# nsp_df.iloc[:,1:] = nsp_df.iloc[:,1:].apply(lambda x: np.where(x < 0.001, np.nan, x))
+-# light_df.iloc[:,1:] = light_df.iloc[:,1:].apply(lambda x: np.where(x < 0.001, np.nan, x))
+-
+-# # log2 before filtering and imputation
+-# total_df.iloc[:,1:] = np.log2(total_df.iloc[:,1:])
+-# nsp_df.iloc[:,1:] = np.log2(nsp_df.iloc[:,1:])
+-# light_df.iloc[:,1:] = np.log2(light_df.iloc[:,1:])
+-
+-# # Filter the DataFrames
+-# total_df = filter_for_valid_values(total_df)
+-# nsp_df = filter_for_valid_values(nsp_df)
+-# light_df = filter_for_valid_values(light_df)
+-
+-# # impute with gausian shift
+-# total_df, total_df_imputed = perform_imputation(total_df)
+-# nsp_df, nsp_df_imputed = perform_imputation(nsp_df)
+-# light_df, light_df_imputed = perform_imputation(light_df)
+-
+-# plot_histogram(total_df, total_df_imputed)
+-# plot_histogram(nsp_df, nsp_df_imputed)
+-# plot_histogram(light_df, light_df_imputed)
+-
+-# # base 2 exponentiation before saving
+-# total_df.iloc[:,1:] = 2**total_df.iloc[:,1:]
+-# nsp_df.iloc[:,1:] = 2**nsp_df.iloc[:,1:]
+-# light_df.iloc[:,1:] = 2**light_df.iloc[:,1:]
+-
+-# nsp_df.to_csv("G:/My Drive/Data/data/eIF4F optimization/imputed intensities 8hr/nsp.csv", sep=',')
+-# light_df.to_csv("G:/My Drive/Data/data/eIF4F optimization/imputed intensities 8hr/light.csv", sep=',')
+-# total_df.to_csv("G:/My Drive/Data/data/eIF4F optimization/imputed intensities 8hr/total.csv", sep=',')
+-
+-# # nsp_df.to_csv("G:/My Drive/Data/data/no spikein data/protein intensities/nsp.csv", sep=',')
+-# # light_df.to_csv("G:/My Drive/Data/data/no spikein data/protein intensities/light.csv", sep=',')
+-# # total_df.to_csv("G:/My Drive/Data/data/no spikein data/protein intensities/total.csv", sep=',')
+ 
+ 
+ 
+diff --git a/tests/test_oop_pipeline.py b/tests/test_oop_pipeline.py
+index 8ef1b41..f866418 100644
+--- a/tests/test_oop_pipeline.py
++++ b/tests/test_oop_pipeline.py
+@@ -9,10 +9,10 @@ from silac_dia_tools.pipeline.pipeline import Pipeline
+ 
+ if __name__ == "__main__":
+     pipeline = Pipeline('G:/My Drive/Data/data/eIF4F optimization/', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
+-    pipeline = Pipeline( 'G:/My Drive/Data/data/no spikein data/', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="M", meta="meta.csv")
++    pipeline = Pipeline( 'G:/My Drive/Data/data/spikein data/', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
+    
+     
+-    pipeline.run_dlfq_pipeline()
+-    # pipeline.run_href_pipeline()
++    # pipeline.run_dlfq_pipeline()
++    pipeline.run_href_pipeline()
+     pipeline.save_preprocessing()
+     pipeline.generate_reports()
+\ No newline at end of file

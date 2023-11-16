@@ -1,7 +1,8 @@
 import os
-import dask.dataframe as dd
-import tkinter as tk
-from pandastable import Table
+import dask.dataframe as dd # add to setup
+import tkinter as tk # add to setup
+import pandas as pd
+from pandastable import Table # add to setup
 from icecream import ic 
 
 from silac_dia_tools.pipeline.preprocessor_dev import Preprocessor
@@ -68,21 +69,13 @@ class Pipeline:
     def _output_dlfq(self):
        self.dlfq_total_intensities, self.dlfq_nsp_intensities, self.dlfq_total_light = self.intensity_calculator.output_dlfq(self.protein_groups, self.formatted_precursors)
     
-    def make_metadata(self, path):
+    def make_metadata(self):
         root = tk.Tk()
-        app = TestApp(path, root)
+        app = TestApp(self.path, root)
         root.protocol("WM_DELETE_WINDOW", app.on_closing)
         app.pack(fill="both", expand=True)  # Ensure the app fills the root window
         root.mainloop()
 
-        
-        
-        # Create Tkinter window
- 
-        
-
-
-        
     def save_preprocessing(self):
         manage_directories.create_directory(self.path, 'preprocessing')
         
@@ -122,9 +115,6 @@ class Pipeline:
         protein_intensities_report.create_report(file_list, self.path, self.params)
         
         
-import tkinter as tk
-from pandastable import Table
-import pandas as pd
 
 class TestApp(tk.Frame):
     def __init__(self, path, parent=None):
@@ -158,7 +148,7 @@ class TestApp(tk.Frame):
         unique_runs = df['Run'].drop_duplicates().compute()
         print(f'unique runs: {unique_runs}')
         # Create DataFrame
-        df = pd.DataFrame({'Run': unique_runs, 'Sample': ['' for _ in unique_runs]})
+        df = pd.DataFrame({'Run': unique_runs, 'Sample': ['' for _ in unique_runs], 'Treatment': ['' for _ in unique_runs]})
         return df
 
     def create_table(self):
