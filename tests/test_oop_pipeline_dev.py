@@ -26,29 +26,29 @@ additional columns may be required
 '''
 if __name__ == "__main__":
     
-    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm old/'
-    # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="H", meta="meta.csv")
-    # pipeline_old.run_href_pipeline()
-    # pipeline_old.generate_reports()
-    
-    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm/'
-    # pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="H", meta="meta.csv")
-    # pipeline.preprocess_dev() # in href mode
-    # pipeline.generate_reports()
-    
-    path = 'G:/My Drive/Data/data/testing pipeline dev/eif4f old/'
-    pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
+    path = 'G:/My Drive/Data/data/testing pipeline dev/bm old/'
+    pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="H", meta="meta.csv")
     pipeline_old.run_href_pipeline()
     pipeline_old.generate_reports()
     
-    path = 'G:/My Drive/Data/data/testing pipeline dev/eif4f/'
-    pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta_8h.csv")
-    
-    # report = pipeline.preprocessor.import_no_filter(pipeline.filter_cols)
-    # print('saving subset tsv')
-    # report.to_csv(f'{path}subset_report.csv', sep='\t')
-    # # pipeline.report = pd.read_csv(f'{path}subset_report.csv')
+    path = 'G:/My Drive/Data/data/testing pipeline dev/bm/'
+    pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="H", meta="meta.csv")
     pipeline.preprocess_dev() # in href mode
     pipeline.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/eif4f old/'
+    # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
+    # pipeline_old.run_href_pipeline()
+    # pipeline_old.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/eif4f/'
+    # pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta_8h.csv")
+    
+    # # report = pipeline.preprocessor.import_no_filter(pipeline.filter_cols)
+    # # print('saving subset tsv')
+    # # report.to_csv(f'{path}subset_report.csv', sep='\t')
+    # # # pipeline.report = pd.read_csv(f'{path}subset_report.csv')
+    # pipeline.preprocess_dev() # in href mode
+    # pipeline.generate_reports()
    
    
