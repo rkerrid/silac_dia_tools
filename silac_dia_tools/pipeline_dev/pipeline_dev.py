@@ -21,15 +21,17 @@ class Pipeline:
         self.meta = meta
         self.parameter_file = parameter_file
         self.contains_reference = contains_reference
+        self.filter_cols = ['Lib.PG.Q.Value', 'Precursor.Charge', 'Mass.Evidence', 'Global.PG.Q.Value', 'Channel.Q.Value', 'Translated.Q.Value', 'Translated.Quality']
         
         # pipeline objects
         self.preprocessor = Preprocessor(self.path, self.parameter_file, self.meta)
-        self.formatter = SilacFormatter(self.path)
+        self.formatter = SilacFormatter(self.path, self.filter_cols)
         self.precursor_rollup = PrecursorRollup(self.path)
         self.intensity_calculator = IntensityCalculator(self.path, self.contains_reference, self.pulse_channel)
         
         # pipeline outputs
         self.params = self.preprocessor.params
+        self.report = None
         self.filtered_report = None
         self.filtered_out = None
         self.contaminants = None
@@ -49,6 +51,27 @@ class Pipeline:
         self.dlfq_total_intensities = None
         self.dlfq_total_light = None
         
+    def preprocess_dev(self, report = ''):
+        if len(report)<1:
+            print('read in data')
+            self.report = self.preprocessor.import_no_filter(self.filter_cols)
+            print("after filter, below self.report after filer")
+        else:
+            self.report = pd.read_csv(report, sep=',')
+   
+        
+        
+        self.formatted_precursors = self.formatter.format_silac_channels(self.report)
+        self.filtered_report, self.contaminants, self.filtered_out = self.preprocessor.filter_formatted(self.formatted_precursors)
+        self.filtered_report  = self.filtered_report[self.filtered_report['quantity type'] == 'Ms1.Translated']
+        self.contaminants  = self.contaminants[self.contaminants['quantity type'] == 'Ms1.Translated']
+        self.filtered_out = self.filtered_out[self.filtered_out['quantity type'] == 'Ms1.Translated']
+        
+        self._roll_up_to_protein_level()
+        self.save_preprocessing()
+        self._output_unnormalized()
+       
+        self._output_href()
         
     def _preprocess(self):
         self.filtered_report, self.contaminants, self.filtered_out = self.preprocessor.import_and_filter()

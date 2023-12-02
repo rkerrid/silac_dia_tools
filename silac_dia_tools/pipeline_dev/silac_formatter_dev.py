@@ -1,51 +1,57 @@
 
 import pandas as pd
 import numpy as np
+from icecream import ic
 
 
 class SilacFormatter:
-    def __init__(self, path):
+    def __init__(self, path, filter_cols):
         self.path = path
-        self.filtered_report = None
+        self.report = None
         self.parsed_df = None
         self.combined_precursors = None
         self.stacked_intensities = None
+        self.filter_cols = filter_cols
         
-    def format_silac_channels(self, filtered_report):
+    def format_silac_channels(self, report):
         print('Beggining formatiing silac channels')
-        self.parsed_df = self.parse_data_for_channel_info(filtered_report)
+        print('before parsing')
+        self.report = report
+        ic(self.report)
+        self.parsed_df = self.parse_data_for_channel_info(self.report, self.filter_cols)
+        print('after parsing')
         self.combined_precursors = self.combine_modified_precursors()
         self.stacked_intensities = self.stack_intensities()
         
         print('Finished formatiing silac channels')
         return self.stacked_intensities
 
-    def parse_data_for_channel_info(self, filtered_report):
+    def parse_data_for_channel_info(self, report, filter_cols):
         print('Parsing data for SILAC intensities')
         # Extracting SILAC labels from Precursor.ID and adding to separate column
-        filtered_report['Label'] = filtered_report['Precursor.Id'].str.extract(r'\(SILAC-(K|R)-([HML])\)')[1]    
-        filtered_report['Precursor'] = filtered_report['Stripped.Sequence'] + filtered_report['Precursor.Charge'].astype(str)
+        ic(report)
+        report['Label'] = report['Precursor.Id'].str.extract(r'\(SILAC-(K|R)-([HML])\)')[1]    
+        report['Precursor'] = report['Stripped.Sequence'] + report['Precursor.Charge'].astype(str)
         
         # Splitting the data into two, one for 'Ms1.Translated' and another for 'Precursor.Translated'
-        ms1_translated_df = filtered_report.copy()
-        ms1_translated_df['intensity'] = filtered_report['Ms1.Translated']
+        ms1_translated_df = report.copy()
+        ms1_translated_df['intensity'] = report['Ms1.Translated']
         ms1_translated_df['quantity type'] = 'Ms1.Translated'
     
-        precursor_translated_df = filtered_report.copy()
-        precursor_translated_df['intensity'] = filtered_report['Precursor.Translated']
+        precursor_translated_df = report.copy()
+        precursor_translated_df['intensity'] = report['Precursor.Translated']
         precursor_translated_df['quantity type'] = 'Precursor.Translated'
         
         # Concatenate the two dataframes to create the parsed dataframe
         parsed_df = pd.concat([ms1_translated_df, precursor_translated_df], ignore_index=True)
-        return parsed_df[['Run', 'Protein.Group', 'Precursor.Id', 'Precursor', 'Label', 'intensity', 'quantity type', 'Precursor.Quantity', 'Lib.PG.Q.Value']]
+        return parsed_df[['Run', 'Protein.Group', 'Precursor.Id', 'Precursor', 'Label', 'intensity', 'quantity type', 'Precursor.Quantity'] + filter_cols]
 
     def combine_modified_precursors(self):
         print('combining modified precursors')
         # Define aggregation functions for columns
-        agg_functions = {
-            'intensity': 'first',
-            'Lib.PG.Q.Value': 'first',
-        }
+        keys = self.filter_cols
+        agg_functions = {key: 'first' for key in keys}
+        agg_functions['intensity'] = 'first'
         # Aggregate data using groupby and agg function
         agg_df = self.parsed_df.groupby(['Run', 'Protein.Group',  'Precursor', 'quantity type', 'Label']).agg(agg_functions).reset_index()
 
@@ -58,6 +64,14 @@ class SilacFormatter:
 
         # Merge the pivoted_df with the original df to get other columns back
         df = pd.merge(agg_df.drop(columns=['Label', 'intensity']), pivoted_df, on=['Run', 'Protein.Group',  'Precursor', 'quantity type'])
+        
+        # Assuming df is your DataFrame
+        # 'column_to_keep_highest' is the column for which you want to keep the highest value
+        # 'subset_columns' is a list of columns based on which you want to drop duplicates
+        
+        df = df.sort_values(self.filter_cols, ascending=False).drop_duplicates(subset=['Run', 'Protein.Group',  'Precursor', 'quantity type'])
+
+
 
         df = df.drop_duplicates()
         return df
@@ -89,6 +103,7 @@ class SilacFormatter:
         
         #rename precursor for directLFQ
         df = df.rename(columns={'Precursor':'Precursor.Id'})
-        return df[['Run', 'Protein.Group', 'Precursor.Id','Precursor.Quantity','Lib.PG.Q.Value','quantity type','H intensity','M intensity','L intensity','H to stack ratio', 'M to stack ratio', 'L to stack ratio']]
+        return df[['Run', 'Protein.Group', 'Precursor.Id','Precursor.Quantity','quantity type','H intensity','M intensity','L intensity','H to stack ratio', 'M to stack ratio', 'L to stack ratio']
+                  +self.filter_cols]
 
   
