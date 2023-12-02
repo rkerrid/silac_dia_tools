@@ -112,7 +112,7 @@ class Pipeline:
         protein_group_report.create_report(self.protein_groups, self.path, self.params)
         print('Beginning protein intensities report')
         file_list = [f for f in os.listdir(f'{self.path}protein intensities') if os.path.isfile(os.path.join(f'{self.path}protein intensities', f))]
-        protein_intensities_report.create_report(file_list, self.path, self.params)
+        protein_intensities_report.create_report(self.path, self.params)
         
         
 
