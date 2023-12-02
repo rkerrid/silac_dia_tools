@@ -72,13 +72,18 @@ class Preprocessor:
     
     def import_no_filter(self, filter_cols):
         print('Beggining import no filter')
+        if self.meta:
+            print('reading in meta')
+            metadata = pd.read_csv(f'{self.path}{self.meta}', sep=',')
         count = 1
         with open(f"{self.path}report.tsv", 'r', encoding='utf-8') as file:
             chunks = []
     
     
             for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
-                chunk = self.drop_cols(chunk, filter_cols)
+                if self.meta:
+                    chunk = self.drop_non_meta_samples(chunk, metadata)
+                # chunk = self.drop_cols(chunk, filter_cols)
                 chunks.append(chunk)
                 
                 # Update progress (optional)
@@ -92,7 +97,12 @@ class Preprocessor:
             print('Finished import no filter')
         ic(df)
         return df
+    
+    def drop_non_meta_samples(self, chunk, meta):
+        filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
+        return filtered_chunk
         
+    
     def filter_formatted(self, formatted_precursors):
         precursors = self.relable_run(formatted_precursors)
         precursors, contam = self.remove_contaminants(precursors)

@@ -74,6 +74,8 @@ class Preprocessor:
         # Iterate through the file in chunks and apply preprocessing functions
         print('Beggining filtering')
         count = 1
+        if self.relable_with_meta:
+            metadata = pd.read_csv(f'{self.path}{self.meta}', sep=',')
         with open(f"{self.path}report.tsv", 'r', encoding='utf-8') as file:
             chunks = []
             contams = []
@@ -83,6 +85,8 @@ class Preprocessor:
                 # if applicable, relable chunk Run colum with metadata
                 if self.relable_with_meta:
                     chunk = self.relable_run(chunk)
+                    
+                    chunk = self.drop_non_meta_samples(chunk, metadata)
                 
                 # Apply filtering to each chunk
                 chunk, contam = self.remove_contaminants(chunk)
@@ -116,7 +120,11 @@ class Preprocessor:
         
         print('Filtering complete')
         return df, contams, filtered_set
-
+    
+    def drop_non_meta_samples(self, chunk, meta):
+        filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
+        return filtered_chunk
+    
     #Filtering
     def remove_contaminants(self, chunk): # is self needed?
         # Create a contaminants mask based on the cont_ string and make sure all values are boolean

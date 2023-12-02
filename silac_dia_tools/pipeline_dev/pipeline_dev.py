@@ -1,6 +1,8 @@
 import os
 import dask.dataframe as dd # add to setup
 import tkinter as tk # add to setup
+from tkinter import messagebox
+from tkinter import filedialog
 import pandas as pd
 from pandastable import Table # add to setup
 from icecream import ic 
@@ -9,7 +11,7 @@ from silac_dia_tools.pipeline_dev.preprocessor_dev import Preprocessor
 from silac_dia_tools.pipeline_dev.silac_formatter_dev import SilacFormatter
 from silac_dia_tools.pipeline_dev.precursor_rollup_dev import PrecursorRollup
 from silac_dia_tools.pipeline_dev.calculate_intensities_dev import IntensityCalculator
-from silac_dia_tools.pipeline_dev.report import filtering_report, precursor_report, protein_group_report, protein_intensities_report
+from silac_dia_tools.pipeline.report import filtering_report, precursor_report, protein_group_report, protein_intensities_report
 from silac_dia_tools.pipeline_dev.utils import manage_directories
 
 
@@ -50,19 +52,16 @@ class Pipeline:
         self.dlfq_nsp_intensities = None
         self.dlfq_total_intensities = None
         self.dlfq_total_light = None
+        if meta == None:
+            self.ask_user()
         
-    def preprocess_dev(self, report = ''):
-        if len(report)<1:
-            print('read in data')
-            self.report = self.preprocessor.import_no_filter(self.filter_cols)
-            print("after filter, below self.report after filer")
-        else:
-            self.report = pd.read_csv(report, sep=',')
-   
-        
-        
+    def preprocess_dev(self):
+        self.report = self.preprocessor.import_no_filter(self.filter_cols)
+        # self.report = pd.read_csv(f'G:/My Drive/Data/data/testing pipeline dev/eif4f/subset_report.csv', sep='\t')
+        print('finished reading in file')
         self.formatted_precursors = self.formatter.format_silac_channels(self.report)
         self.filtered_report, self.contaminants, self.filtered_out = self.preprocessor.filter_formatted(self.formatted_precursors)
+        
         self.filtered_report  = self.filtered_report[self.filtered_report['quantity type'] == 'Ms1.Translated']
         self.contaminants  = self.contaminants[self.contaminants['quantity type'] == 'Ms1.Translated']
         self.filtered_out = self.filtered_out[self.filtered_out['quantity type'] == 'Ms1.Translated']
@@ -72,7 +71,25 @@ class Pipeline:
         self._output_unnormalized()
        
         self._output_href()
+    
+    def make_metadata(self):
+        root = tk.Tk()
+        app = TestApp(self.path, root)
+        root.protocol("WM_DELETE_WINDOW", app.on_closing)
+        app.pack(fill="both", expand=True)  # Ensure the app fills the root window
+        root.mainloop()
         
+    def ask_user(self):
+        root = tk.Tk()
+        root.withdraw()
+        
+        response = messagebox.askyesno('Choose Option', 'Do you want to create a metadata file?')
+        
+        if response:
+            self.make_metadata()
+        else:
+            print('Continue without creating metadata file')
+            
     def _preprocess(self):
         self.filtered_report, self.contaminants, self.filtered_out = self.preprocessor.import_and_filter()
         
@@ -91,13 +108,6 @@ class Pipeline:
        
     def _output_dlfq(self):
        self.dlfq_total_intensities, self.dlfq_nsp_intensities, self.dlfq_total_light = self.intensity_calculator.output_dlfq(self.protein_groups, self.formatted_precursors)
-    
-    def make_metadata(self):
-        root = tk.Tk()
-        app = TestApp(self.path, root)
-        root.protocol("WM_DELETE_WINDOW", app.on_closing)
-        app.pack(fill="both", expand=True)  # Ensure the app fills the root window
-        root.mainloop()
 
     def save_preprocessing(self):
         manage_directories.create_directory(self.path, 'preprocessing')
@@ -178,6 +188,20 @@ class TestApp(tk.Frame):
         pt = Table(self, dataframe=self.df, showtoolbar=True, showstatusbar=True)
         pt.show()
         return pt
+    
+    def add_save_button(self):
+        save_button = tk.Button(self.main, text='Save', command=self.save_data)
+        save_button.pack()
+
+    def save_data(self):
+        # Get DataFrame from table
+        df_to_save = self.table.model.df
+
+        # Open file dialog to select path and file name
+        file_path = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
+        if file_path:  # Check if a file path was selected
+            df_to_save.to_csv(file_path, index=False)
+            print(f'Data saved to {file_path}')
 
     def on_closing(self):
         # This function is called when the window is closed
