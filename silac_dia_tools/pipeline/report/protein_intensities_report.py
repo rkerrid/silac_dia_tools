@@ -151,6 +151,6 @@ def create_report(path, params):
 #             print(file)
 #         # Add correlation heatmap page
 #         # create_correlation_heatmap(df, pdf)
->>>>>>> 159f76abb9b5a2cb4ab4190e034be4d2d94215ce
+
 
 

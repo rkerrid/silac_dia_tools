@@ -26,15 +26,38 @@ additional columns may be required
 '''
 if __name__ == "__main__":
     
-    path = 'G:/My Drive/Data/data/testing pipeline dev/bm old/'
-    pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="H", meta="meta.csv")
-    pipeline_old.run_href_pipeline()
-    pipeline_old.generate_reports()
-    
-    path = 'G:/My Drive/Data/data/testing pipeline dev/bm/'
-    pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="H", meta="meta.csv")
-    pipeline.preprocess_dev() # in href mode
+    path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/old/'
+    print('initialize pipleine')
+    pipeline = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="H", meta='meta.csv')
+    print('running pipeline')
+    # pipeline.make_metadata() 
+    pipeline.run_href_pipeline()
     pipeline.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/'
+    # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="H", meta='meta.csv')
+    # pipeline_old.run_href_pipeline()
+    # pipeline_old.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm old/'
+    # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="M", meta="meta.csv")
+    # pipeline_old.run_href_pipeline()
+    # pipeline_old.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm/'
+    # pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="M", meta="meta.csv")
+    # pipeline.preprocess_dev_dlfq() # in href mode
+    # pipeline.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm old/'
+    # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
+    # pipeline_old.run_href_pipeline()
+    # pipeline_old.generate_reports()
+    
+    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm/'
+    # pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="M", meta="meta.csv")
+    # pipeline.preprocess_dev_dlfq() # in href mode
+    # pipeline.generate_reports()
     
     # path = 'G:/My Drive/Data/data/testing pipeline dev/eif4f old/'
     # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")

@@ -32,7 +32,7 @@ class SilacFormatter:
         ic(report)
         report['Label'] = report['Precursor.Id'].str.extract(r'\(SILAC-(K|R)-([HML])\)')[1]    
         report['Precursor'] = report['Stripped.Sequence'].astype(str) + report['Precursor.Charge'].astype(str)
-        
+        print(report.columns.values.tolist())
         # Splitting the data into two, one for 'Ms1.Translated' and another for 'Precursor.Translated'
         ms1_translated_df = report.copy()
         ms1_translated_df['intensity'] = report['Ms1.Translated']

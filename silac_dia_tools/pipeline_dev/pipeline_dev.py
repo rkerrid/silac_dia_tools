@@ -21,6 +21,10 @@ class Pipeline:
         self.path = path
         self.pulse_channel = pulse_channel
         self.meta = meta
+        # ic(self.meta)
+        # if meta == None:
+        #     self.make_metadata()
+            
         self.parameter_file = parameter_file
         self.contains_reference = contains_reference
         self.filter_cols = ['Lib.PG.Q.Value', 'Precursor.Charge', 'Mass.Evidence', 'Global.PG.Q.Value', 'Channel.Q.Value', 'Translated.Q.Value', 'Translated.Quality']
@@ -52,10 +56,9 @@ class Pipeline:
         self.dlfq_nsp_intensities = None
         self.dlfq_total_intensities = None
         self.dlfq_total_light = None
-        if meta == None:
-            self.ask_user()
         
-    def preprocess_dev(self):
+        
+    def preprocess_dev_href(self):
         self.report = self.preprocessor.import_no_filter(self.filter_cols)
         # self.report = pd.read_csv(f'G:/My Drive/Data/data/testing pipeline dev/eif4f/subset_report.csv', sep='\t')
         print('finished reading in file')
@@ -71,6 +74,23 @@ class Pipeline:
         self._output_unnormalized()
        
         self._output_href()
+        
+    def preprocess_dev_dlfq(self):
+        self.report = self.preprocessor.import_no_filter(self.filter_cols)
+        # self.report = pd.read_csv(f'G:/My Drive/Data/data/testing pipeline dev/eif4f/subset_report.csv', sep='\t')
+        print('finished reading in file')
+        self.formatted_precursors = self.formatter.format_silac_channels(self.report)
+        self.filtered_report, self.contaminants, self.filtered_out = self.preprocessor.filter_formatted(self.formatted_precursors)
+        
+        self.filtered_report  = self.filtered_report[self.filtered_report['quantity type'] == 'Ms1.Translated']
+        self.contaminants  = self.contaminants[self.contaminants['quantity type'] == 'Ms1.Translated']
+        self.filtered_out = self.filtered_out[self.filtered_out['quantity type'] == 'Ms1.Translated']
+        
+        self._roll_up_to_protein_level()
+        self.save_preprocessing()
+        self._output_unnormalized()
+       
+        self._output_dlfq()
     
     def make_metadata(self):
         root = tk.Tk()
@@ -80,13 +100,17 @@ class Pipeline:
         root.mainloop()
         
     def ask_user(self):
+        print('ask user')
         root = tk.Tk()
         root.withdraw()
         
         response = messagebox.askyesno('Choose Option', 'Do you want to create a metadata file?')
         
         if response:
+            print('Add metadata and save file as meta.csv in report.tsv directory')
+            self.meta = f'{self.path}meta.csv'
             self.make_metadata()
+         
         else:
             print('Continue without creating metadata file')
             

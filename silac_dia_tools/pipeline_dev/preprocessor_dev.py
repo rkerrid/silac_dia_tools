@@ -96,6 +96,7 @@ class Preprocessor:
             df = pd.concat(chunks, ignore_index=True)
             print('Finished import no filter')
         ic(df)
+        print(df.columns.values.tolist())
         return df
     
     def drop_non_meta_samples(self, chunk, meta):
