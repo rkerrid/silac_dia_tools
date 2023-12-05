@@ -18,28 +18,33 @@ import json
 import os
 import operator
 
+from silac_dia_tools.pipeline_new_version.silac_formatter_dev import SilacFormatter
+
+
 from icecream import ic
 
 
 class Preprocessor:
-    def __init__(self, path, parameter_file, meta=None, config_dir=None):
+    def __init__(self, path, params, meta=None):
         self.path = path
-        self.parameter_file = parameter_file
+        self.params = params
         self.meta = meta
-        self.config_dir = config_dir or os.path.join(os.path.dirname(__file__), '..', 'configs')
-        self.params = self._load_params()
+        self.filter_cols = list(self.params.keys())
+        self.combined_precursors = None
+        # self.config_dir = config_dir or os.path.join(os.path.dirname(__file__), '..', 'configs')
+        # self.params = self._load_params()
         self.chunk_size = 10000
         self.relable_with_meta = self._confirm_metadata()
         if self.relable_with_meta:
             self.meta_data = pd.read_csv(f'{self.path}{self.meta}', sep=',')
             print('Will relabel runs with metadata sample column')
         self.update = True
-        
-    def _load_params(self):
-        json_path = os.path.join(self.config_dir, self.parameter_file)
-        with open(json_path, 'r') as f:
-            params = json.load(f)
-            return params 
+        self.formatter = SilacFormatter(self.path, self.filter_cols)
+    # def _load_params(self):
+    #     json_path = os.path.join(self.config_dir, self.parameter_file)
+    #     with open(json_path, 'r') as f:
+    #         params = json.load(f)
+    #         return params 
     
     def _confirm_metadata(self):
         if self.meta is None:
@@ -70,8 +75,15 @@ class Preprocessor:
             print(f"CSV file '{self.meta}' not found in the directory.")
             return False
     
-    def import_no_filter(self, filter_cols):
-        print('Beggining import no filter')
+    def import_and_format(self):
+        df = self.import_tsv()
+        df = self.formatter.format_silac_channels(df)
+        print(df.columns.values.tolist())
+        self.combined_precursors = df
+        
+    def import_tsv(self):
+        # import tsv from path, drop all rows not in the metadata, drop all cols that are not needed, return imported data
+        print('Beggining import')
         if self.meta:
             print('reading in meta')
             metadata = pd.read_csv(f'{self.path}{self.meta}', sep=',')
@@ -79,11 +91,10 @@ class Preprocessor:
         with open(f"{self.path}report.tsv", 'r', encoding='utf-8') as file:
             chunks = []
     
-    
             for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
                 if self.meta:
                     chunk = self.drop_non_meta_samples(chunk, metadata)
-                # chunk = self.drop_cols(chunk, filter_cols)
+                # chunk = self.drop_cols(chunk, self.filter_cols)
                 chunks.append(chunk)
                 
                 # Update progress (optional)
@@ -94,10 +105,10 @@ class Preprocessor:
             # Concatenate all chunks into a DataFrames
   
             df = pd.concat(chunks, ignore_index=True)
-            print('Finished import no filter')
-        ic(df)
-        print(df.columns.values.tolist())
+            print('Finished import ')
+
         return df
+        
     
     def drop_non_meta_samples(self, chunk, meta):
         filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
@@ -111,52 +122,7 @@ class Preprocessor:
      
         return precursors, contam, filtered_out
         
-    def import_and_filter(self):
-        # Iterate through the file in chunks and apply preprocessing functions
-        print('Beggining filtering')
-        count = 1
-        with open(f"{self.path}report.tsv", 'r', encoding='utf-8') as file:
-            chunks = []
-            contams = []
-            filtered_set = []
-    
-            for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
-                # if applicable, relable chunk Run colum with metadata
-                if self.relable_with_meta:
-                    chunk = self.relable_run(chunk)
-                
-                # Apply filtering to each chunk
-                chunk, contam = self.remove_contaminants(chunk)
-                chunk, filtered_out = self.apply_filters(chunk)
-                
-                # Drop unnecesary columns
-                chunk = self.drop_cols(chunk) 
-                
-                # Append chunks from respective filtering steps
-                filtered_set.append(filtered_out)
-                contams.append(contam)
-                chunks.append(chunk)
-                
-                # Update progress (optional)
-                if self.update:
-                    print('chunk ', count,' processed')
-                count+=1
-            
-            # Concatenate all chunks into a DataFrames
-            filtered_set = pd.concat(filtered_set, ignore_index=True)
-            contams = pd.concat(contams, ignore_index=True)
-            df = pd.concat(chunks, ignore_index=True)
-            
-        
-        # # Apply filtering to each chunk
-        # df, contam = self.remove_contaminants(df)
-        # df, filtered_out = self.apply_filters(df)
-        
-        # # Drop unnecesary columns
-        # df = self.drop_cols(df) 
-        
-        print('Filtering complete')
-        return df, contams, filtered_set
+
 
     #Filtering
     def remove_contaminants(self, chunk): # is self needed?

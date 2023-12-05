@@ -6,7 +6,7 @@ Created on Wed Nov 29 11:52:35 2023
 """
 
 from icecream import ic
-from silac_dia_tools.pipeline_new_version import Pipeline as pileline
+from silac_dia_tools.pipeline_new_version.pipeline_dev import Pipeline as pileline
 import pandas as pd 
 
 '''attempting to format the silac channels first then filter afterwards. Filter columns to keep in this step are:
@@ -27,11 +27,12 @@ if __name__ == "__main__":
     
     path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/old/'
     print('initialize pipleine')
-    pipeline = pileline( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="H", meta='meta.csv')
-    print('running pipeline')
-    # pipeline.make_metadata() 
-    pipeline.run_href_pipeline()
-    pipeline.generate_reports()
+    pipeline = pileline( f'{path}', 'filtering_parameters_strict.json', meta='meta.csv')
+    # pipeline.make_metadata()               
+    pipeline.preprocess()
+    
+    # pipeline.run_href_pipeline()
+    # pipeline.generate_reports()
     
     # path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/'
     # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="H", meta='meta.csv')

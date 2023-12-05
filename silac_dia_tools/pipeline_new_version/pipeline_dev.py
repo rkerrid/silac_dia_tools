@@ -6,56 +6,72 @@ from tkinter import filedialog
 import pandas as pd
 from pandastable import Table # add to setup
 from icecream import ic 
+import json
+import os
 
-from silac_dia_tools.pipeline_dev.preprocessor_dev import Preprocessor
-from silac_dia_tools.pipeline_dev.silac_formatter_dev import SilacFormatter
-from silac_dia_tools.pipeline_dev.precursor_rollup_dev import PrecursorRollup
-from silac_dia_tools.pipeline_dev.calculate_intensities_dev import IntensityCalculator
+from silac_dia_tools.pipeline_new_version.preprocessor_dev import Preprocessor
+from silac_dia_tools.pipeline_new_version.silac_formatter_dev import SilacFormatter
+from silac_dia_tools.pipeline_new_version.precursor_rollup_dev import PrecursorRollup
+from silac_dia_tools.pipeline_new_version.calculate_intensities_dev import IntensityCalculator
 from silac_dia_tools.pipeline.report import filtering_report, precursor_report, protein_group_report, protein_intensities_report
-from silac_dia_tools.pipeline_dev.utils import manage_directories
+from silac_dia_tools.pipeline_new_version.utils import manage_directories
 
 
 class Pipeline:
-    def __init__(self, path, parameter_file, contains_reference = True, pulse_channel="M", meta=None):
+    def __init__(self, path, parameter_file, method = 'href', pulse_channel="M", meta=None):
         # pipeline variables
         self.path = path
+        self.config_dir = os.path.join(os.path.dirname(__file__), '..', 'configs')
+
         self.pulse_channel = pulse_channel
         self.meta = meta
-        # ic(self.meta)
-        # if meta == None:
-        #     self.make_metadata()
+        if not meta:
+            print('No meta file added, call the create_metadata() method to generate a file or add a csv file with correct formatting before processing')
             
         self.parameter_file = parameter_file
-        self.contains_reference = contains_reference
-        self.filter_cols = ['Lib.PG.Q.Value', 'Precursor.Charge', 'Mass.Evidence', 'Global.PG.Q.Value', 'Channel.Q.Value', 'Translated.Q.Value', 'Translated.Quality']
+        self.method = method
+        self.params = self._get_params()
         
-        # pipeline objects
-        self.preprocessor = Preprocessor(self.path, self.parameter_file, self.meta)
-        self.formatter = SilacFormatter(self.path, self.filter_cols)
-        self.precursor_rollup = PrecursorRollup(self.path)
-        self.intensity_calculator = IntensityCalculator(self.path, self.contains_reference, self.pulse_channel)
         
-        # pipeline outputs
-        self.params = self.preprocessor.params
-        self.report = None
-        self.filtered_report = None
-        self.filtered_out = None
-        self.contaminants = None
+        self.preprocessor = None
         
-        self.formatted_precursors = None
-        self.protein_groups = None
+    def _get_params(self):
         
-        self.unnormalized_total_intensities = None
-        self.unnormalized_nsp_intensities = None
-        self.light_unormalized_intensities = None
+        with open(f'{self.config_dir}/{self.parameter_file}', 'r') as file:
+                json_data = json.load(file)
+                params = json_data.get("apply_filters", {})
+                
+        return params
         
-        self.href_total_intensities = None
-        self.href_nsp_intensities = None
-        self.href_nsp_light = None
+       
+        # self.formatter = SilacFormatter(self.path, self.filter_cols)
+        # self.precursor_rollup = PrecursorRollup(self.path)
+        # self.intensity_calculator = IntensityCalculator(self.path, self.contains_reference, self.pulse_channel)
         
-        self.dlfq_nsp_intensities = None
-        self.dlfq_total_intensities = None
-        self.dlfq_total_light = None
+        # # pipeline outputs
+        # self.params = self.preprocessor.params
+        # self.report = None
+        # self.filtered_report = None
+        # self.filtered_out = None
+        # self.contaminants = None
+        
+        # self.formatted_precursors = None
+        # self.protein_groups = None
+        
+        # self.unnormalized_total_intensities = None
+        # self.unnormalized_nsp_intensities = None
+        # self.light_unormalized_intensities = None
+        
+        # self.href_total_intensities = None
+        # self.href_nsp_intensities = None
+        # self.href_nsp_light = None
+        
+        # self.dlfq_nsp_intensities = None
+        # self.dlfq_total_intensities = None
+        # self.dlfq_total_light = None
+    def preprocess(self):
+        self.preprocessor = Preprocessor(self.path, self.params, self.meta)
+        df = self.preprocessor.import_and_format()
         
         
     def preprocess_dev_href(self):
@@ -113,7 +129,9 @@ class Pipeline:
          
         else:
             print('Continue without creating metadata file')
-            
+    
+ 
+    
     def _preprocess(self):
         self.filtered_report, self.contaminants, self.filtered_out = self.preprocessor.import_and_filter()
         
