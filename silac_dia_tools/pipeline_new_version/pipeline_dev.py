@@ -34,6 +34,13 @@ class Pipeline:
         
         
         self.preprocessor = None
+        self.precursor_roll_up = None
+        
+        # preprocessed data
+        self.combined_precursors = None
+        self.precursors = None
+        self.contams = None
+        self.filtered_out = None
         
     def _get_params(self):
         
@@ -71,8 +78,15 @@ class Pipeline:
         # self.dlfq_total_light = None
     def preprocess(self):
         self.preprocessor = Preprocessor(self.path, self.params, self.meta)
-        df = self.preprocessor.import_and_format()
-        
+        self.combined_precursors = self.preprocessor.import_and_format()
+        self.precursors, self.contams, self.filtered_out = self.preprocessor.filter_formatted()
+        # self.precursors = self.preprocessor.format_table(self.precursors)
+        manage_directories.create_directory(self.path, 'preprocessing')
+        self.precursors.to_csv(f'{self.path}/preprocessing/filtered_precursors.csv', index = False)
+    
+    def precursor_roll_up(self):
+        # roll up to protein level and create protein_groups.csv
+        self.precursor_roll_up = PrecursorRollup(self.path)
         
     def preprocess_dev_href(self):
         self.report = self.preprocessor.import_no_filter(self.filter_cols)

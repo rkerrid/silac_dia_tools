@@ -40,11 +40,11 @@ class Preprocessor:
             print('Will relabel runs with metadata sample column')
         self.update = True
         self.formatter = SilacFormatter(self.path, self.filter_cols)
-    # def _load_params(self):
-    #     json_path = os.path.join(self.config_dir, self.parameter_file)
-    #     with open(json_path, 'r') as f:
-    #         params = json.load(f)
-    #         return params 
+        
+        # filtered dataframes
+        self.filter_precursors = None
+        self.filtered_out_stringent = None
+        self.filtered_out_loose = None
     
     def _confirm_metadata(self):
         if self.meta is None:
@@ -77,9 +77,9 @@ class Preprocessor:
     
     def import_and_format(self):
         df = self.import_tsv()
-        df = self.formatter.format_silac_channels(df)
-        print(df.columns.values.tolist())
-        self.combined_precursors = df
+        self.combined_precursors = self.formatter.format_silac_channels(df)
+        
+        return self.combined_precursors
         
     def import_tsv(self):
         # import tsv from path, drop all rows not in the metadata, drop all cols that are not needed, return imported data
@@ -108,33 +108,90 @@ class Preprocessor:
             print('Finished import ')
 
         return df
-        
+   
     
     def drop_non_meta_samples(self, chunk, meta):
         filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
         return filtered_chunk
         
     
-    def filter_formatted(self, formatted_precursors):
-        precursors = self.relable_run(formatted_precursors)
-        precursors, contam = self.remove_contaminants(precursors)
-        precursors, filtered_out = self.apply_filters(precursors)
-     
-        return precursors, contam, filtered_out
-        
-
-
+    def filter_formatted(self):
+        precursors, contam = self.remove_contaminants(self.combined_precursors)
+        self.filtered_precursors, filtered_out = self.apply_filters(precursors)
+        self.filtered_precursors = self.format_table(self.filtered_precursors)
+        return self.filtered_precursors, contam, filtered_out
+    
     #Filtering
-    def remove_contaminants(self, chunk): # is self needed?
+    def remove_contaminants(self, combined_precursors): # is self needed?
         # Create a contaminants mask based on the cont_ string and make sure all values are boolean
-        contams_mask = chunk['Protein.Group'].str.contains('cont_', case=False, na=False)
+        contams_mask = combined_precursors['Protein.Group'].str.contains('cont_', case=False, na=False)
         if not all(isinstance(x, bool) for x in contams_mask):
             print("contams_mask contains non-boolean values:", contams_mask[~contams_mask.isin([True, False])])
 
-        contams_df = chunk[contams_mask]  # Dataframe with only contaminants
-        cleaned_chunk = chunk[~contams_mask]  # Dataframe without contaminants
-        return cleaned_chunk, contams_df
+        contams_df = combined_precursors[contams_mask]  # Dataframe with only contaminants
+        filtered_precursors = combined_precursors[~contams_mask]  # Dataframe without contaminants
+        return filtered_precursors, contams_df
+    
+    def format_table(self, precursors):
+        print('before formatting')
+        ic(precursors)
+        precursors = self.drop_filter_cols(precursors)
+        print('after formatting')
+        ic(precursors)
+        return precursors
         
+    def drop_filter_cols(self, precursors):
+        # Base columns to retain
+        base_columns = ['Run', 'Protein.Group', 'Precursor', 'quantity_type']
+        
+        # Find all columns that contain 'intensity' with any suffix
+        intensity_columns = [col for col in precursors.columns if 'intensity' in col]
+     
+        # Combine base columns and intensity columns
+        columns_to_keep = base_columns + intensity_columns
+     
+        # Filter the DataFrame to retain only the specified columns
+        precursors = precursors[columns_to_keep]
+        return precursors
+        # return filtered_df
+        
+    # def filter_formatted(self, formatted_precursors):
+    #     precursors = self.relable_run(formatted_precursors)
+    #     precursors, contam = self.remove_contaminants(precursors)
+    #     precursors, filtered_out = self.apply_filters(precursors)
+     
+    #     return precursors, contam, filtered_out
+        
+     
+    # def apply_filters(self, chunk):
+    #     # Initialize operator dict
+    #     ops = {
+    #         "==": operator.eq,
+    #         "<": operator.lt,
+    #         "<=": operator.le,
+    #         ">": operator.gt,
+    #         ">=": operator.ge
+    #     }
+
+    #      # Create a boolean Series with all True values and explicitly set its index
+    #     filtering_condition = pd.Series([True] * len(chunk), index=chunk.index)
+        
+    #     # Iterating over each filter condition in params['apply_filters']
+    #     for column, condition in self.params.items():
+    #         op = ops[condition['op']]
+    #         value = condition['value']
+            
+    #         # Updating filtering_condition by applying each condition
+    #         filtering_condition &= op(chunk[column], value)
+
+    #     # Filter chunk and return both filtered and filtered out dfs
+    #     chunk_filtered = chunk[filtering_condition]
+    #     chunk_filtered_out = chunk[~filtering_condition]
+        
+    #     #filter for each channel and add boolean column to say whether all channels passed
+        
+    #     return chunk_filtered, chunk_filtered_out
+    
     def apply_filters(self, chunk):
         # Initialize operator dict
         ops = {
@@ -144,23 +201,38 @@ class Preprocessor:
             ">": operator.gt,
             ">=": operator.ge
         }
-
-         # Create a boolean Series with all True values and explicitly set its index
+    
+        # Create a boolean Series for initial filtering
         filtering_condition = pd.Series([True] * len(chunk), index=chunk.index)
         
         # Iterating over each filter condition in params['apply_filters']
-        for column, condition in self.params['apply_filters'].items():
+        for column, condition in self.params.items():
             op = ops[condition['op']]
             value = condition['value']
             
             # Updating filtering_condition by applying each condition
             filtering_condition &= op(chunk[column], value)
-
-        # Filter chunk and return both filtered and filtered out dfs
+    
+        # Filter chunk based on initial conditions
         chunk_filtered = chunk[filtering_condition]
         chunk_filtered_out = chunk[~filtering_condition]
-
+    
+        # Check for additional columns and apply further filtering
+        stringent_passed = pd.Series([True] * len(chunk_filtered), index=chunk_filtered.index)
+        for column, condition in self.params.items():
+            for suffix in ['_L', '_M', '_H']:
+                additional_column = f'{column}{suffix}'
+                if additional_column in chunk_filtered.columns:
+                    op = ops[condition['op']]
+                    value = condition['value']
+                    stringent_passed &= op(chunk_filtered[additional_column], value)
+    
+        # Adding 'passed stringent' column
+        chunk_filtered['passed stringent'] = stringent_passed
+        
         return chunk_filtered, chunk_filtered_out
+
+
 
     def  drop_cols(self, chunk, filter_cols = []): # is self needed?
         chunk['Genes'] = chunk['Genes'].fillna('')

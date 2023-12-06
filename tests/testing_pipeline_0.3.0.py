@@ -25,7 +25,7 @@ additional columns may be required
 '''
 if __name__ == "__main__":
     
-    path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/old/'
+    path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/new/'
     print('initialize pipleine')
     pipeline = pileline( f'{path}', 'filtering_parameters_strict.json', meta='meta.csv')
     # pipeline.make_metadata()               
