@@ -29,7 +29,8 @@ if __name__ == "__main__":
     print('initialize pipleine')
     pipeline = pileline( f'{path}', 'filtering_parameters_strict.json', meta='meta.csv')
     # pipeline.make_metadata()               
-    pipeline.preprocess()
+    precursors = pipeline.preprocess()
+    pipeline.precursor_to_protein(precursors)
     
     # pipeline.run_href_pipeline()
     # pipeline.generate_reports()

@@ -83,6 +83,8 @@ class Preprocessor:
             for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
                 if self.meta:
                     chunk = self.drop_non_meta_samples(chunk, metadata)
+                    chunk['Genes'] = chunk['Genes'].fillna('')
+                    chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
                 # chunk = self.drop_cols(chunk, filter_cols)
                 chunks.append(chunk)
                 

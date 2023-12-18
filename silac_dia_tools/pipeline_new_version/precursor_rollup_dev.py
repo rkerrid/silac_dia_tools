@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from icecream import ic
 
 
 class PrecursorRollup:
@@ -10,11 +11,11 @@ class PrecursorRollup:
         
     @staticmethod
     def select_precursor_translated(group):
-        return group[group['quantity type'] == 'Precursor.Translated']
+        return group[group['quantity_type'] == 'Precursor.Translated']
 
     @staticmethod
     def select_ms1_translated(group):
-        return group[group['quantity type'] == 'Ms1.Translated']
+        return group[group['quantity_type'] == 'Ms1.Translated']
 
     def calculate_protein_level_ratios(self, df):
   
@@ -31,9 +32,9 @@ class PrecursorRollup:
           
             if len(precursor_group) > 2 and len(ms1_group) > 2:
                 # Compute the median of log2 ratios
-                median_log2_ratio_l = np.median(np.log2(group['L to stack ratio']))
-                median_log2_ratio_m = np.median(np.log2(group['M to stack ratio']))
-                median_log2_ratio_h = np.median(np.log2(group['H to stack ratio']))
+                median_log2_ratio_l = np.median(np.log2(group['L_to_stack_ratio']))
+                median_log2_ratio_m = np.median(np.log2(group['M_to_stack_ratio']))
+                median_log2_ratio_h = np.median(np.log2(group['H_to_stack_ratio']))
                 # Reverse log
                 median_ratio_l = np.exp2(median_log2_ratio_l)
                 median_ratio_m = np.exp2(median_log2_ratio_m)
@@ -45,14 +46,15 @@ class PrecursorRollup:
                     'Run': group['Run'].iloc[0],
                     'Protein.Group': group['Protein.Group'].iloc[0],
                    
-                    'Total intensity': total_intensity,
-                    'L to stack ratio': median_ratio_l,
-                    'M to stack ratio': median_ratio_m,
-                    'H to stack ratio': median_ratio_h,
-                    'L intensity': median_ratio_l * total_intensity,
-                    'M intensity': median_ratio_m * total_intensity,
-                    'H intensity': median_ratio_h * total_intensity
- 
+                    'Total_intensity': total_intensity,
+                    'L_to_stack_ratio': median_ratio_l,
+                    'M_to_stack_ratio': median_ratio_m,
+                    'H_to_stack_ratio': median_ratio_h,
+                    'L_intensity': median_ratio_l * total_intensity,
+                    'M_intensity': median_ratio_m * total_intensity,
+                    'H_intensity': median_ratio_h * total_intensity
+                    
+                        
                 }
                 protein_data.append(new_row)
                 protein_count += 1
@@ -66,3 +68,24 @@ class PrecursorRollup:
         
         self.protein_groups = protein_ratios
         return self.protein_groups 
+    
+    def calculate_stringent_and_inclusive(self, df):
+        # create deep coppies of df
+       stringent = df.copy(deep=True)
+       inclusive = df.copy(deep=True)
+       # use 'passed stringent' to subset df based on filtering
+       stringent = stringent[stringent['passed_stringent']]
+       ic(stringent)
+       inclusive = inclusive[inclusive['passed_stringent']==False]
+       ic(inclusive)
+       # calculate protein level ratios for each filtering algorythm
+       stringent_protein_ratios = self.calculate_protein_level_ratios(stringent)
+       inclusive_protein_ratios = self.calculate_protein_level_ratios(inclusive)
+       
+       return stringent_protein_ratios, inclusive_protein_ratios
+   
+    
+   
+    
+   
+    

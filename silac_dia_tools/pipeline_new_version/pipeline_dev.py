@@ -34,8 +34,7 @@ class Pipeline:
         
         
         self.preprocessor = None
-        self.precursor_roll_up = None
-        
+        self.precursor_roll_up = PrecursorRollup(self.path)        
         # preprocessed data
         self.combined_precursors = None
         self.precursors = None
@@ -82,11 +81,16 @@ class Pipeline:
         self.precursors, self.contams, self.filtered_out = self.preprocessor.filter_formatted()
         # self.precursors = self.preprocessor.format_table(self.precursors)
         manage_directories.create_directory(self.path, 'preprocessing')
-        self.precursors.to_csv(f'{self.path}/preprocessing/filtered_precursors.csv', index = False)
+        # self.precursors.to_csv(f'{self.path}/preprocessing/filtered_precursors.csv', index = False)
+        return self.precursors
     
-    def precursor_roll_up(self):
+    def precursor_to_protein(self, precursors):
+        ic(precursors)
         # roll up to protein level and create protein_groups.csv
-        self.precursor_roll_up = PrecursorRollup(self.path)
+        
+        stringent, inclusive = self.precursor_roll_up.calculate_stringent_and_inclusive(precursors)
+        ic(stringent)
+        ic(inclusive)
         
     def preprocess_dev_href(self):
         self.report = self.preprocessor.import_no_filter(self.filter_cols)

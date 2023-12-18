@@ -112,6 +112,12 @@ class Preprocessor:
     
     def drop_non_meta_samples(self, chunk, meta):
         filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
+        # Create a mapping from 'Run' to 'Sample' using the meta DataFrame
+        run_to_sample_map = dict(zip(meta['Run'], meta['Sample']))
+    
+           # Map the 'Run' column of the chunk to the 'Sample' values from meta
+        filtered_chunk['Run'] = filtered_chunk['Run'].map(run_to_sample_map)
+
         return filtered_chunk
         
     
@@ -136,16 +142,17 @@ class Preprocessor:
         print('before formatting')
         ic(precursors)
         precursors = self.drop_filter_cols(precursors)
+        precursors = self.stack_intensities(precursors)
         print('after formatting')
         ic(precursors)
         return precursors
         
     def drop_filter_cols(self, precursors):
         # Base columns to retain
-        base_columns = ['Run', 'Protein.Group', 'Precursor', 'quantity_type']
+        base_columns = ['Run', 'Protein.Group', 'Precursor', 'quantity_type','passed_stringent']
         
         # Find all columns that contain 'intensity' with any suffix
-        intensity_columns = [col for col in precursors.columns if 'intensity' in col]
+        intensity_columns = [col for col in precursors.columns if 'intensity_' in col]
      
         # Combine base columns and intensity columns
         columns_to_keep = base_columns + intensity_columns
@@ -153,8 +160,22 @@ class Preprocessor:
         # Filter the DataFrame to retain only the specified columns
         precursors = precursors[columns_to_keep]
         return precursors
-        # return filtered_df
         
+    def stack_intensities(self, df):
+        # Check for each intensity column and create/fill with 0 if not present
+        for col in ['intensity_L', 'intensity_H', 'intensity_M']:
+            if col not in df.columns:
+                df[col] = 0
+        # Replace missing values with 0 and sum up the intensity columns
+        df['Precursor.Quantity'] = df[['intensity_L', 'intensity_H', 'intensity_M']].fillna(0).sum(axis=1)
+        
+        # Create ratio columns, handling division by zero by replacing NaNs with 0
+        df['H_to_stack_ratio'] = (df['intensity_H'] / df['Precursor.Quantity']).fillna(0)
+        df['L_to_stack_ratio'] = (df['intensity_L'] / df['Precursor.Quantity']).fillna(0)
+        df['M_to_stack_ratio'] = (df['intensity_M'] / df['Precursor.Quantity']).fillna(0)
+
+        return df
+    
     # def filter_formatted(self, formatted_precursors):
     #     precursors = self.relable_run(formatted_precursors)
     #     precursors, contam = self.remove_contaminants(precursors)
@@ -228,7 +249,7 @@ class Preprocessor:
                     stringent_passed &= op(chunk_filtered[additional_column], value)
     
         # Adding 'passed stringent' column
-        chunk_filtered['passed stringent'] = stringent_passed
+        chunk_filtered['passed_stringent'] = stringent_passed
         
         return chunk_filtered, chunk_filtered_out
 
