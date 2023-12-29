@@ -9,14 +9,23 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+<<<<<<< HEAD
 import json
+=======
+from silac_dia_tools.pipeline.utils import manage_directories
+>>>>>>> silac_dia_tools_oop
 
 
-def silac_precursor_qc(df, path):
+def create_report(df, path, params):
+    # Construct the description string
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
+    description = f"Parameters used:\n{params_str}"
+    
     counts_df = df['Run'].value_counts()
     
     # Set up the PDF
-    create_reports_directory(path)
+    # create_reports_directory(path)
+    manage_directories.create_directory(path,'reports')
     output_dir = path + '/reports'
     pdf_path = os.path.join(output_dir, 'silac_precursors_report.pdf')
     
@@ -31,16 +40,22 @@ def silac_precursor_qc(df, path):
     
     df_grouped = df.groupby('Run')
     
+    
+    
     with PdfPages(pdf_path) as pdf:
         # Title and introduction
         plt.figure(figsize=(8, 11))
         plt.axis('off')
         plt.text(0.5, 0.98, "Silac Precursors QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
         plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
+<<<<<<< HEAD
         
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()
         
+=======
+                
+>>>>>>> silac_dia_tools_oop
         # Display table of counts
         table_data = [["Run", "DF Count"]]
         for run in counts_df.keys():
@@ -82,15 +97,3 @@ def plot_histograms_for_run(run, df_grouped, labels):
     plt.ylabel('Frequency')
     plt.legend()
 
-
-#create preprocessing directory for new files 
-def create_reports_directory(path):
-    # Combine the paths
-    new_folder_path = os.path.join(path, 'reports')
-    
-    # Create the new folder
-    if not os.path.exists(new_folder_path):
-        os.makedirs(new_folder_path)
-        print(f"Folder reports created successfully at {new_folder_path}")
-    else:
-        print(f"Folder reports already exists at {new_folder_path}")
