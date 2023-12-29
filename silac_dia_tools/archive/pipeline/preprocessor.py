@@ -28,7 +28,7 @@ class Preprocessor:
         self.meta = meta
         self.config_dir = config_dir or os.path.join(os.path.dirname(__file__), '..', 'configs')
         self.params = self._load_params()
-        self.chunk_size = 10000
+        self.chunk_size = 100000
         self.relable_with_meta = self._confirm_metadata()
         if self.relable_with_meta:
             self.meta_data = pd.read_csv(f'{self.path}{self.meta}', sep=',')
@@ -70,54 +70,12 @@ class Preprocessor:
             print(f"CSV file '{self.meta}' not found in the directory.")
             return False
     
-    def import_no_filter(self, filter_cols):
-        print('Beggining import no filter')
-        if self.meta:
-            print('reading in meta')
-            metadata = pd.read_csv(f'{self.path}{self.meta}', sep=',')
-        count = 1
-        with open(f"{self.path}report.tsv", 'r', encoding='utf-8') as file:
-            chunks = []
-    
-    
-            for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
-                # print(chunk['Run'])
-                if self.meta:
-                    chunk = self.drop_non_meta_samples(chunk, metadata)
-                    chunk['Genes'] = chunk['Genes'].fillna('')
-                    chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
-                # chunk = self.drop_cols(chunk, filter_cols)
-                chunks.append(chunk)
-                
-                # Update progress (optional)
-                if self.update:
-                    print('chunk ', count,' processed')
-                count+=1
-            
-            # Concatenate all chunks into a DataFrames
-  
-            df = pd.concat(chunks, ignore_index=True)
-            print('Finished import no filter')
-        ic(df)
-        print(df.columns.values.tolist())
-        return df
-    
-    def drop_non_meta_samples(self, chunk, meta):
-        filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
-        return filtered_chunk
-        
-    
-    def filter_formatted(self, formatted_precursors):
-        precursors = self.relable_run(formatted_precursors)
-        precursors, contam = self.remove_contaminants(precursors)
-        precursors, filtered_out = self.apply_filters(precursors)
-     
-        return precursors, contam, filtered_out
-        
     def import_and_filter(self):
         # Iterate through the file in chunks and apply preprocessing functions
         print('Beggining filtering')
         count = 1
+        if self.relable_with_meta:
+            metadata = pd.read_csv(f'{self.path}{self.meta}', sep=',')
         with open(f"{self.path}report.tsv", 'r', encoding='utf-8') as file:
             chunks = []
             contams = []
@@ -127,6 +85,8 @@ class Preprocessor:
                 # if applicable, relable chunk Run colum with metadata
                 if self.relable_with_meta:
                     chunk = self.relable_run(chunk)
+                    
+                    chunk = self.drop_non_meta_samples(chunk, metadata)
                 
                 # Apply filtering to each chunk
                 chunk, contam = self.remove_contaminants(chunk)
@@ -160,7 +120,11 @@ class Preprocessor:
         
         print('Filtering complete')
         return df, contams, filtered_set
-
+    
+    def drop_non_meta_samples(self, chunk, meta):
+        filtered_chunk = chunk[chunk['Run'].isin(meta['Run'])]
+        return filtered_chunk
+    
     #Filtering
     def remove_contaminants(self, chunk): # is self needed?
         # Create a contaminants mask based on the cont_ string and make sure all values are boolean
@@ -199,7 +163,7 @@ class Preprocessor:
 
         return chunk_filtered, chunk_filtered_out
 
-    def  drop_cols(self, chunk, filter_cols = []): # is self needed?
+    def  drop_cols(self, chunk): # is self needed?
         chunk['Genes'] = chunk['Genes'].fillna('')
         chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
         cols_to_keep = [ 'Run',
@@ -207,11 +171,11 @@ class Preprocessor:
                           'Stripped.Sequence',
                           'Precursor.Id', 
                           'Precursor.Charge',
-            
+                          'Lib.PG.Q.Value',
                           'Precursor.Quantity',
                           'Precursor.Translated',
                           'Ms1.Translated'
-                          ] + filter_cols
+                          ]
         chunk = chunk[cols_to_keep]
         return chunk
     
