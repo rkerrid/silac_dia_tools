@@ -23,7 +23,13 @@ class Pipeline:
         self.pulse_channel = pulse_channel
         self.meta = meta
         self.contains_reference = contains_reference
+        self.relable_with_meta = self._confirm_metadata()
+        self.meta_data = None
         
+        if self.relable_with_meta:
+            self.meta_data = pd.read_csv(f'{self.path}{self.meta}', sep=',')
+            print('Will relabel runs with metadata sample column')
+            
         # import parameters
         self.parameter_file = parameter_file
         self.config_dir = os.path.join(os.path.dirname(__file__), '..', 'configs')
@@ -31,7 +37,7 @@ class Pipeline:
         self.filter_cols = list(self.params['apply_filters'].keys()) + ['Lib.PG.Q.Value']
         
         # pipeline objects
-        self.preprocessor = Preprocessor(self.path, self.params, self.meta)
+        self.preprocessor = Preprocessor(self.path, self.params, self.meta_data)
         self.formatter = SilacFormatter(self.path, self.filter_cols)
         self.precursor_rollup = PrecursorRollup(self.path)
         self.intensity_calculator = IntensityCalculator(self.path, self.contains_reference, self.pulse_channel)
@@ -63,6 +69,35 @@ class Pipeline:
         with open(json_path, 'r') as f:
             params = json.load(f)
             return params 
+    
+    def _confirm_metadata(self):
+        if self.meta is None:
+            print("No metadata added, filtering will continue without relabeling")
+            return False
+        elif isinstance(self.meta, str):
+            print("Metadata added, looking for the following file:", self.meta)
+            meta_exists = self._check_directory()
+            if meta_exists:
+                return True
+            else:
+                print(f"Cannot find {self.meta} in {self.path}, check file name and location") 
+                print("Filtering will continue without relabeling")
+        else:
+            print("File name is not a string, filering will continue without relabeling")
+            return False
+    
+    def _check_directory(self):
+        file_list = os.listdir(self.path)
+        # Iterate through the list of filenames and check for a match
+        found = False
+        for filename in file_list:
+            if filename == self.meta:
+                found = True
+                print(f"CSV file '{self.meta}' found in {self.path}")
+                return True
+        if not found:
+            print(f"CSV file '{self.meta}' not found in the directory.")
+            return False
         
     def preprocess_href(self):
         self.report = self.preprocessor.import_report()
