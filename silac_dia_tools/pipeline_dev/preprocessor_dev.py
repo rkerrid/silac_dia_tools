@@ -81,6 +81,7 @@ class Preprocessor:
     
     
             for chunk in pd.read_table(file,sep="\t", chunksize=self.chunk_size):
+                # print(chunk['Run'])
                 if self.meta:
                     chunk = self.drop_non_meta_samples(chunk, metadata)
                     chunk['Genes'] = chunk['Genes'].fillna('')

@@ -28,8 +28,8 @@ merged_data = merged_data[merged_data['Protein.Group'].str.contains('ECOLI_')]
 
 
 # Filtering out columns for sample S3_1
-s3_1_light = merged_data['S5_1_light']
-s3_1_nsp = merged_data['S5_1_nsp']
+s3_1_light = merged_data['S3_1_light']
+s3_1_nsp = merged_data['S3_1_nsp']
 
 # # Avoiding division by zero and excluding missing values
 # valid_indices = (s3_1_nsp != 0) & ~s3_1_nsp.isna() & ~s3_1_light.isna()
@@ -43,7 +43,7 @@ ic(ratio_s3_1)
 # Creating the scatter plot
 plt.figure(figsize=(10, 6))
 plt.scatter(np.log2(ratio_s3_1), np.log2(s3_1_light), alpha=0.5)
-plt.title('Scatter Plot of S3_1 Intensity vs. Ratio (Light/Nsp)')
+plt.title('Intensity vs. Ratio (Light/Nsp)')
 plt.xlabel('Ratio (Light/Nsp)')
 plt.ylabel('Intensity (Light)')
 plt.grid(True)

@@ -95,6 +95,7 @@ class Preprocessor:
                 if self.meta:
                     chunk = self.drop_non_meta_samples(chunk, metadata)
                 # chunk = self.drop_cols(chunk, self.filter_cols)
+                print(chunk['Run'])
                 chunks.append(chunk)
                 
                 # Update progress (optional)

@@ -39,13 +39,15 @@ if __name__ == "__main__":
     # pipeline_old.run_href_pipeline()
     # pipeline_old.generate_reports()
     
-    # path = 'G:/My Drive/Data/data/testing pipeline dev/bm old/'
+    # path = 'G:/My Drive/Data/data/altruism data/silac ineuron compartments/old/'
     # pipeline_old = pileline_old( f'{path}', 'filtering_parameters_strict.json', contains_reference = False, pulse_channel="M", meta="meta.csv")
+    # # pipeline_old.make_metadata() 
     # pipeline_old.run_href_pipeline()
     # pipeline_old.generate_reports()
     
-    path = 'G:/My Drive/Data/data/poc 3/Hnew/'
-    pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta="meta.csv")
+    path = 'G:/My Drive/Data/data/eif4g optimization/'
+    pipeline = pileline_dev( f'{path}', 'filtering_parameters_strict.json', contains_reference = True, pulse_channel="M", meta='meta.csv')
+    # pipeline.make_metadata()
     pipeline.preprocess_dev_href() # in href mode
     pipeline.generate_reports()
     

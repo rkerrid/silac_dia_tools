@@ -25,12 +25,12 @@ additional columns may be required
 '''
 if __name__ == "__main__":
     
-    path = 'G:/My Drive/Data/data/testing pipeline dev/bm whole set/new/'
+    path = 'G:/My Drive/Data/data/poc4/H/'
     print('initialize pipleine')
     pipeline = pileline( f'{path}', 'filtering_parameters_strict.json', meta='meta.csv')
     # pipeline.make_metadata()               
     precursors = pipeline.preprocess()
-    pipeline.precursor_to_protein(precursors)
+    # pipeline.precursor_to_protein(precursors)
     
     # pipeline.run_href_pipeline()
     # pipeline.generate_reports()
