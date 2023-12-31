@@ -64,6 +64,7 @@ class Preprocessor:
         
     
     def filter_formatted(self, formatted_precursors):
+        print('Begin filtering formatted precursors')
         if self.contains_metadata:
             precursors = self.relable_run(formatted_precursors)
         precursors, contam = self.remove_contaminants(precursors)

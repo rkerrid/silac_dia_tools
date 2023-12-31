@@ -4,7 +4,7 @@ Created on Thu Oct 19 13:33:49 2023
 
 @author: rkerrid
 """
-<<<<<<< HEAD
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
@@ -16,7 +16,7 @@ def create_protein_groups_report(df, path):
     # Count rows for each dataframe
     counts_df = df['Run'].value_counts().reset_index()
     counts_df.columns = ['Run', 'Counts']  # Naming the columns
-=======
+
 # import matplotlib.pyplot as plt
 # from matplotlib.backends.backend_pdf import PdfPages
 # import seaborn as sns
@@ -79,7 +79,7 @@ def create_report(df, path, params):
     # Construct the description string
     params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_filters'].items()])
     description = f"Parameters used:\n{params_str}"
->>>>>>> silac_dia_tools_oop
+
     
     # Construct the description string
     # Load filtering parameters from JSON
@@ -99,34 +99,33 @@ def create_report(df, path, params):
         # Title and introduction
         plt.figure(figsize=(11, 8))
         plt.axis('off')
-<<<<<<< HEAD
+
         plt.text(0.5, 0.98, "Protein Groups QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
         plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
         
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()
         
-        # Creating the barplot
-        plt.figure(figsize=(10, 7))
-        barplot = sns.barplot(x='Run', y='Counts', data=counts_df, orient='v')
-        plt.title('Counts per Run')
-        plt.xlabel('Run')
-        plt.ylabel('Counts')
+        # # Creating the barplot
+        # plt.figure(figsize=(10, 7))
+        # barplot = sns.barplot(x='Run', y='Counts', data=counts_df, orient='v')
+        # plt.title('Counts per Run')
+        # plt.xlabel('Run')
+        # plt.ylabel('Counts')
         
         # Rotating x-axis labels
-        barplot.set_xticklabels(barplot.get_xticklabels(), rotation=45, horizontalalignment='right')
+        # barplot.set_xticklabels(barplot.get_xticklabels(), rotation=45, horizontalalignment='right')
         
         # Adding counts on the bars
-        for index, row in counts_df.iterrows():
-            barplot.text(row.name, row.Counts, row.Counts, color='black', ha="center")
+        # for index, row in counts_df.iterrows():
+        #     barplot.text(row.name, row.Counts, row.Counts, color='black', ha="center")
         
-        pdf.savefig()  # Saves the current figure into the PDF
-=======
-        plt.text(0.5, 0.98, "Protein Ratios QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
-        plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
-        pdf.savefig()
->>>>>>> silac_dia_tools_oop
-        plt.close()
+        # pdf.savefig()  # Saves the current figure into the PDF
+        # plt.text(0.5, 0.98, "Protein Ratios QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
+        # plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
+        # pdf.savefig()
+
+        # plt.close()
 
         # Process the data for each 'Run'
         for run in df['Run'].unique():

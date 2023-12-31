@@ -43,7 +43,6 @@ class Pipeline:
         self.intensity_calculator = IntensityCalculator(self.path, self.contains_reference, self.pulse_channel)
         
         # pipeline outputs
-        self.params = self.preprocessor.params
         self.report = None
         self.filtered_report = None
         self.filtered_out = None
@@ -208,8 +207,8 @@ class Pipeline:
         precursor_report.create_report(self.formatted_precursors, self.path, self.params)
         print('Beginning protein group report')
         protein_group_report.create_report(self.protein_groups, self.path, self.params)
-        print('Beginning protein intensities report')
-        file_list = [f for f in os.listdir(f'{self.path}protein intensities') if os.path.isfile(os.path.join(f'{self.path}protein intensities', f))]
+        # print('Beginning protein intensities report')
+        # file_list = [f for f in os.listdir(f'{self.path}protein intensities') if os.path.isfile(os.path.join(f'{self.path}protein intensities', f))]
         protein_intensities_report.create_report(self.path, self.params)
         
 

@@ -9,11 +9,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-<<<<<<< HEAD
+
 import json
-=======
+
 from silac_dia_tools.pipeline.utils import manage_directories
->>>>>>> silac_dia_tools_oop
+
 
 
 def create_report(df, path, params):
@@ -48,14 +48,14 @@ def create_report(df, path, params):
         plt.axis('off')
         plt.text(0.5, 0.98, "Silac Precursors QC Report", ha='center', va='top', fontsize=15, fontweight='bold')
         plt.text(0.5, 0.85, description, ha='center', va='center', wrap=True)
-<<<<<<< HEAD
+
         
         pdf.savefig()  # Saves the current figure into the PDF
         plt.close()
         
-=======
+
                 
->>>>>>> silac_dia_tools_oop
+
         # Display table of counts
         table_data = [["Run", "DF Count"]]
         for run in counts_df.keys():
